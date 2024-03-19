@@ -89,8 +89,11 @@ function(declare, BaseWidget, Polyline, Point, Graphic, SimpleLineSymbol, Color,
         //-------------------------------------------------------------------------
 
         var longitudTotalPolyline = calcularLongitudPolilinea(polylineCoordenates)
-        // Decide la cantidad de puntos deseados (por ejemplo, 10 puntos)
-        const numPoints = 500;
+        console.log('la longitud total de la polyline es de ', longitudTotalPolyline, )
+        var length = geometryEngine.geodesicLength(polyline, "meters");
+        console.log('la longitud total de la polyline con geometryEngine es de ', length )
+
+        const numPoints = 1000;
         const distanceBetweenPoints = longitudTotalPolyline / numPoints;
         //distanceBetweenPoints = 0.1
 
@@ -159,8 +162,7 @@ function(declare, BaseWidget, Polyline, Point, Graphic, SimpleLineSymbol, Color,
             Math.sin(dLat / 2) ** 2 +
             Math.cos(lat1Rad) * Math.cos(lat2Rad) * Math.sin(dLon / 2) ** 2;
           const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-          //const distance = earthRadius * c;
-          const distance = c;
+          const distance = earthRadius * c;
 
           return distance; // Distancia en kilómetros
         }
