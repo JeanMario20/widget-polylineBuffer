@@ -1,0 +1,11 @@
+.jimu-widget-demo div:first-child{
+  color: red;
+}
+
+.jimo-widget-demo .draw-item.polyline {
+  stroke: #ff0000
+}
+
+.jimo-widget-demo .draw-item.polyline{
+  stroke-width: 100px;
+}
