@@ -21,8 +21,10 @@ define(['dojo/_base/declare', 'jimu/BaseWidget', 'esri/geometry/Polyline', 'esri
 'esri/layers/GraphicsLayer',
 'esri/symbols/SimpleMarkerSymbol',
 'esri/tasks/GeometryService',
-'esri/dijit/analysis/InterpolatePoints'],
-function(declare, BaseWidget, Polyline, Point, Graphic, SimpleLineSymbol, Color, geometryEngine, SimpleFillSymbol, GraphicsLayer,SimpleMarkerSymbol,GeometryService, InterpolatePoints) {
+'esri/dijit/analysis/InterpolatePoints',
+'esri/symbols/TextSymbol',
+'esri/symbols/Font'],
+function(declare, BaseWidget, Polyline, Point, Graphic, SimpleLineSymbol, Color, geometryEngine, SimpleFillSymbol, GraphicsLayer,SimpleMarkerSymbol,GeometryService, InterpolatePoints, TextSymbol, Font) {
   //To create a widget, you need to derive from BaseWidget.
   return declare([BaseWidget], {
     // DemoWidget code goes here
@@ -56,6 +58,7 @@ function(declare, BaseWidget, Polyline, Point, Graphic, SimpleLineSymbol, Color,
       var coordenadaPolylineIntersect = [];
       var polylinePoint = []
       
+      var mapa = this.map
 
       boton.addEventListener('click', function() {
         
@@ -69,7 +72,6 @@ function(declare, BaseWidget, Polyline, Point, Graphic, SimpleLineSymbol, Color,
         console.log('se a creado el buffer')
 
         var buffer = geometryEngine.geodesicBuffer(polyline,10,"kilometers")
-        var multiPoint = geometryEngine.geodesicBuffer(polyline,1, "kilometers")
         
         var simpleFillSymbol = new SimpleFillSymbol();
         simpleFillSymbol.setColor(new Color([170, 255, 0, 0.25]));
@@ -81,10 +83,10 @@ function(declare, BaseWidget, Polyline, Point, Graphic, SimpleLineSymbol, Color,
         line.setStyle(SimpleLineSymbol.STYLE_NULL);
 
         var bufferGraphic = new Graphic(buffer, simpleFillSymbol, line)
-        var bufferGraphic2 = new Graphic(multiPoint)
+        
     
         graphicsLayer.add(bufferGraphic)
-        graphicsLayer.add(bufferGraphic2)
+
 
         //-------------------------------------------------------------------------
 
@@ -107,7 +109,7 @@ function(declare, BaseWidget, Polyline, Point, Graphic, SimpleLineSymbol, Color,
           var point = new Point(pointJson)
           polylinePoint.push(pointCoords)
           var simpleMarkerSymbol = new SimpleMarkerSymbol()
-          var pointGraphic = new Graphic(point, simpleMarkerSymbol)
+          var pointGraphic = new Graphic(point)
 
           graphicsLayer.add(pointGraphic)
         }
@@ -181,44 +183,46 @@ function(declare, BaseWidget, Polyline, Point, Graphic, SimpleLineSymbol, Color,
         puntosInteres.forEach(recorrido);
         function recorrido(puntos, index, array){ //en el array se estan tomando en cuenta para almacenenar los puntos a identificar 
           var resultado = geometryEngine.nearestCoordinate(buffer,puntos)
+          var prueba = null
+          mapa.graphicsLayerIds.forEach(function(layer){
+            if (layer === 'buffer' || layer == "graphicsLayer1"){
+              console.log(layer)
+            } else if(layer === 'graphicsLayer1'){
+              console.log(layer)
+            } else if(layer === "marker-feature-action-layer"){
+              console.log(layer)
+            }
+            else{
+              console.log(layer)
+              prueba = layer
+            }
+          })
+
+          //console.log(prueba)
+
+          //var prueba = mapa.graphicsLayerIds[1]
+
+          let capasAgregadas = mapa.getLayer(prueba);
+          let todosLosGraficos = capasAgregadas.graphics;
+          todosLosGraficos.forEach(function(grafico) {
+            console.log("ID del gráfico:", grafico.id);
+            console.log("Geometría:", grafico.geometry);
+            console.log("Atributos:", grafico.attributes);
+            console.log("Símbolo:", grafico.symbol);
+            console.log("----");
+        });
+
           if(resultado.distance === 0){
             console.log('un punto se encuentra dentro del buffer')
-            interseccion = geometryEngine.intersect(multiPoint,polyline)
-
-            var arrayInterseccion = multiPoint.rings;
-
-            arrayInterseccion.forEach((submatriz, i) =>{
-              submatriz.forEach((element, j) => {
-                //console.log(`Elemento en la posición [${i}][${j}]: ${element}`)
-                var pointJson = {
-                  "x": element[0], "y": element[1], "spatialReference": {"wkid": 4326 } 
-                }
-
-                var point = new Point(pointJson)
-                var simpleMarkerSymbol = new SimpleMarkerSymbol()
-                var pointGraphic = new Graphic(point, simpleMarkerSymbol)
-
-                graphicsLayer.add(pointGraphic)
-              })
-            })
-
-
-
 
             var punto = [puntos.x, puntos.y]
 
             //encontrarCoordenadamasCercana(arrayInterseccion, punto);
             encontrarCoordenadamasCercana(polylinePoint, punto)
             polylinePoint = []
-            //var pendiente = calcularPendiente(coordenadaMasCercana, punto)
-            //var resultado = encontrarPerpendicular(coordenadaMasCercana, punto)
 
             coordenadaPolylineIntersect.push(punto)
             coordenadaPolylineIntersect.push(coordenadaMasCercana)
-            //coordenadaPolylineIntersect.push(coordenadaMasCercana)
-            //coordenadaPolylineIntersect.push([coordenadaMasCercana[0],punto[1]])
-
-            //encontrarPolyline(arrayInterseccion)
 
             //se crea nueva geometria se va comenzar con las coordenadas desde el interseccion 
             var polylineJson = {
@@ -230,7 +234,20 @@ function(declare, BaseWidget, Polyline, Point, Graphic, SimpleLineSymbol, Color,
             var simpleLineSymbol = new SimpleLineSymbol();
             simpleLineSymbol.setColor(new Color([0,0,0,10]));
             var polyLineGraphic = new Graphic(polylineIntersect, simpleLineSymbol);
+
+            //var kilometraje = getDistance(polyline[0], punto)
+            //var kilometrajeString = str(kilometraje)
+
+            var pointJson = {
+              'x':punto[0], 'y':punto[1], "spatialReference": {"wkid": 4326 }
+            }
+            var textSymbol = new TextSymbol('esto es una prueba').setHorizontalAlignment('right').setVerticalAlignment('buttom')
+
+            var point = new Point(pointJson)
+            var text = new Graphic(point,textSymbol)
+
             graphicsLayer.add(polyLineGraphic)
+            graphicsLayer.add(text)
 
           }
         }
@@ -288,6 +305,7 @@ function(declare, BaseWidget, Polyline, Point, Graphic, SimpleLineSymbol, Color,
 
         }
 
+        //creacion punto de interes
         if(puntosAencontrar){
           var pointJson = {
             "x": event.mapPoint.getLongitude(), "y": event.mapPoint.getLatitude(), "spatialReference": {"wkid": 4326 } 
@@ -311,17 +329,6 @@ function(declare, BaseWidget, Polyline, Point, Graphic, SimpleLineSymbol, Color,
       function encontrarCoordenadamasCercana(matriz, punto){
         let distanciaMinima = Infinity;
         let coordenadaCercana = null;
-
-        /*matriz.forEach((submatriz, i) =>{
-          submatriz.forEach((element, j) => {
-            //console.log(`Elemento en la posición [${i}][${j}]: ${element}`)
-            const distancia = calcularDistancia(element,punto)
-            if (distancia < distanciaMinima){
-              distanciaMinima = distancia;
-              coordenadaCercana = element;
-            }
-          })
-        })*/
 
         matriz.forEach((submatriz) => {
           const distancia = calcularDistancia(submatriz,punto)
