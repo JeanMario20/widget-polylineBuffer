@@ -306,13 +306,14 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
             simpleLineSymbol.setColor(new Color([0,0,0,10]));
             var polyLineGraphic = new Graphic(polylineIntersect, simpleLineSymbol);
 
-            //var kilometraje = getDistance(polyline[0], punto)
-            //var kilometrajeString = str(kilometraje)
+            var kilometraje = getDistance(polylineCoordenates[0], punto)
+            var kilmetrajeToFixed = kilometraje.toFixed(1)
+            var kilometrajeString = kilmetrajeToFixed.toString()
 
             var pointJson = {
-              'x':punto[0], 'y':punto[1], "spatialReference": {"wkid": 4326 }
+              'x':coordenadaMasCercana[0], 'y':coordenadaMasCercana[1], "spatialReference": {"wkid": 4326 }
             }
-            var textSymbol = new TextSymbol('esto es una prueba').setHorizontalAlignment('right').setVerticalAlignment('buttom')
+            var textSymbol = new TextSymbol(kilometrajeString).setHorizontalAlignment('right').setVerticalAlignment('buttom')
 
             var point = new Point(pointJson)
             var text = new Graphic(point,textSymbol)
