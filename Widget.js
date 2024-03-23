@@ -99,8 +99,16 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
       var coordenadaMasCercana = null;
       var coordenadaPolylineIntersect = [];
       var polylinePoint = []
-      
       var mapa = this.map
+
+      var estacionMillar = "0"
+      var estacionCentenas = "0"
+      var estacionDecenas = "0"
+      var estacionUnidades = "0"      
+      var estacionDecimetro = "0"
+      var estacionCentimetro = "0"
+      var totalEstacionKilometro = estacionMillar + "+" + estacionCentenas + estacionDecenas + estacionUnidades + "." + estacionDecimetro + estacionCentimetro
+      console.log(totalEstacionKilometro)
 
       boton.addEventListener('click', function() {
         
@@ -282,8 +290,10 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
             var polyLineGraphic = new Graphic(polylineIntersect, simpleLineSymbol);
 
             var kilometraje = getDistance(polylineCoordenates[0], punto)
-            var kilmetrajeToFixed = kilometraje.toFixed(1)
-            var kilometrajeString = kilmetrajeToFixed.toString()
+            var kilmetrajeToFixed = kilometraje.toFixed(2)
+            var kilometroTotalFormato = DescomponerKilometro(kilmetrajeToFixed)
+            console.log(kilometroTotalFormato)
+            var kilometrajeString = kilometroTotalFormato.toString()
 
             var pointJson = {
               'x':coordenadaMasCercana[0], 'y':coordenadaMasCercana[1], "spatialReference": {"wkid": 4326 }
@@ -407,6 +417,30 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
 
         return [newX, newY]
 
+      }
+
+      function DescomponerKilometro(numero){
+        var millares = Math.floor(numero / 1000);
+        numero = numero % 1000;
+        var centenas = Math.floor(numero / 100);
+        numero = numero % 100;
+        var decenas = Math.floor(numero / 10);
+        var unidades = Math.floor(numero % 10);
+
+        // Para manejar los decimales
+        var decimales = Math.floor((numero % 1) * 10);
+        var centesimas = Math.floor(((numero * 10) % 1) * 10);
+
+        estacionMillar = millares.toString()
+        estacionCentenas = centenas.toString()
+        estacionDecenas = decenas.toString()
+        estacionUnidades = unidades.toString()
+        estacionDecimetro = decimalesF.toString()
+        estacionCentimetro = centesimas.toString()
+
+        totalEstacionKilometro = estacionMillar + "+" + estacionCentenas + estacionDecenas + estacionUnidades + "." + estacionDecimetro + estacionCentimetro
+
+        return totalEstacionKilometro
       }
 
       var self = this,  args = arguments;
@@ -852,6 +886,6 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
         this.layerListPane.placeAt(this.domNode);
       }
       this.layerListPane.show();
-    }
+    },
   });
 });
