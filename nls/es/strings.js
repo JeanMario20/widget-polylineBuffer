@@ -1,176 +1,143 @@
 ﻿define({
-  root: ({
-    _widgetLabel: "Demostración",
-    label1: "Soy un widget de demostración.",
-    label2: "Esto se puede configurar.",
+  "label1": "Soy un widget de demostración.",
+  "label2": "Esto se puede configurar.",
 
-    noOptionsConfigured: "No options were configured.",
-
-    tabs: {
-      search: "Search",
-      url: "URL",
-      file: "File"
+  "_widgetLabel": "Análisis de Ingeniería",
+  "noOptionsConfigured": "No se ha configurado ninguna opción.",
+  "tabs": {
+    "search": "Buscar",
+    "url": "Dirección URL",
+    "file": "Archivo"
+  },
+  "search": {
+    "featureLayerTitlePattern": "{serviceName} - {layerName}",
+    "layerInaccessible": "No se puede acceder a la capa.",
+    "loadError": "AddData, no se puede cargar:",
+    "searchBox": {
+      "search": "Buscar",
+      "placeholder": "Buscar..."
     },
-
-    search: {
-      featureLayerTitlePattern: "{serviceName} - {layerName}",
-      layerInaccessible: "The layer is inaccessible.",
-      loadError: "AddData, unable to load:",
-      searchBox: {
-        search: "Search",
-        placeholder: "Search..."
+    "bboxOption": {
+      "bbox": "En el mapa"
+    },
+    "scopeOptions": {
+      "anonymousContent": "Contenido",
+      "myContent": "Mi contenido",
+      "myOrganization": "Mi organización",
+      "curated": "Depurado",
+      "ArcGISOnline": "ArcGIS Online"
+    },
+    "sortOptions": {
+      "prompt": "Ordenar por:",
+      "relevance": "Relevancia",
+      "title": "Título",
+      "owner": "Propietario",
+      "rating": "Calificación",
+      "views": "Vistas",
+      "date": "fecha",
+      "switchOrder": "Cambiar"
+    },
+    "typeOptions": {
+      "prompt": "Tipo",
+      "mapService": "Servicio de mapas",
+      "featureService": "Servicio de entidades",
+      "imageService": "Servicio de imágenes",
+      "vectorTileService": "Servicio de teselas vectoriales",
+      "kml": "KML",
+      "wms": "WMS"
+    },
+    "resultsPane": {
+      "noMatch": "No se han encontrado resultados."
+    },
+    "paging": {
+      "first": "<<",
+      "firstTip": "Primero",
+      "previous": "<",
+      "previousTip": "Anterior",
+      "next": ">",
+      "nextTip": "Siguiente",
+      "pagePattern": "{page}"
+    },
+    "resultCount": {
+      "countPattern": "{count} {type}",
+      "itemSingular": "Elemento",
+      "itemPlural": "Elementos"
+    },
+    "item": {
+      "actions": {
+        "add": "Agregar",
+        "close": "Cerrar",
+        "remove": "Quitar",
+        "details": "Detalles",
+        "done": "Hecho",
+        "editName": "Editar nombre"
       },
-      bboxOption: {
-        bbox: "Within map"
+      "messages": {
+        "adding": "Agregando...",
+        "removing": "Eliminando...",
+        "added": "Agregado",
+        "addFailed": "Error al agregar",
+        "unsupported": "No permitido"
       },
-      scopeOptions: {
-        anonymousContent: "Content",
-        myContent: "My Content",
-        myOrganization: "My Organization",
-        curated: "Curated",
-        ArcGISOnline: "ArcGIS Online"
+      "typeByOwnerPattern": "{type} de {owner}",
+      "dateFormat": "MMMM d, aaaa",
+      "datePattern": "{date}",
+      "ratingsCommentsViewsPattern": "{ratings} {ratingsIcon} {comments} {commentsIcon} {views} {viewsIcon}",
+      "ratingsCommentsViewsLabels": {
+        "ratings": "calificaciones\", \"comentarios\": \"comentarios\", \"vistas\": \"vistas"
       },
-      sortOptions: {
-        prompt: "Sort By:",
-        relevance: "Relevance",
-        title: "Title",
-        owner: "Owner",
-        rating: "Rating",
-        views: "Views",
-        date: "Date",
-        switchOrder: "Switch"
-      },
-      typeOptions: {
-        prompt: "Type",
-        mapService: "Map Service",
-        featureService: "Feature Service",
-        imageService: "Image Service",
-        vectorTileService: "Vector Tile Service",
-        kml: "KML",
-        wms: "WMS"
-      },
-      resultsPane: {
-        noMatch: "No results were found."
-      },
-      paging: {
-        first: "<<",
-        firstTip: "First",
-        previous: "<",
-        previousTip: "Previous",
-        next: ">",
-        nextTip: "Next",
-        pagePattern: "{page}"
-      },
-      resultCount: {
-        countPattern: "{count} {type}",
-        itemSingular: "Item",
-        itemPlural: "Items"
-      },
-
-      item: {
-        actions: {
-          add: "Add",
-          close: "Close",
-          remove: "Remove",
-          details: "Details",
-          done: "Done",
-          editName: "Edit Name"
-        },
-        messages: {
-          adding: "Adding...",
-          removing: "Removing...",
-          added: "Added",
-          addFailed: "Add failed",
-          unsupported: "Unsupported"
-        },
-        typeByOwnerPattern: "{type} by {owner}",
-        dateFormat: "MMMM d, yyyy",
-        datePattern: "{date}",
-        ratingsCommentsViewsPattern: "{ratings} {ratingsIcon} {comments} {commentsIcon} {views} {viewsIcon}",
-        ratingsCommentsViewsLabels: {"ratings": "ratings", "comments": "comments", "views": "views"},
-        types: {
-          "Map Service": "Map Service",
-          "Feature Service": "Feature Service",
-          "Image Service": "Image Service",
-          "Vector Tile Service": "Vector Tile Service",
-          "WMS": "WMS",
-          "KML": "KML"
-        }
+      "types": {
+        "Map Service": "Servicio de mapas",
+        "Feature Service": "Servicio de entidades",
+        "Image Service": "Servicio de imágenes",
+        "Vector Tile Service": "Servicio de teselas vectoriales",
+        "WMS": "WMS",
+        "KML": "KML"
       }
-    },
-
-    addFromUrl: {
-      type: "Type",
-      url: "URL",
-      types: {
-        "ArcGIS": "An ArcGIS Server Web Service",
-        "WMS": "A WMS OGC Web Service",
-        "WMTS": "A WMTS OGC Web Service",
-        "WFS": "A WFS OGC Web Service",
-        "KML": "A KML File",
-        "GeoRSS": "A GeoRSS File",
-        "CSV": "A CSV File"
-      },
-      samplesHint: "Sample URL(s)",
-      invalidURL: "Please enter a URL starting with http:// or https://. "
-    },
-
-    addFromFile: {
-      intro: "You can drop or browse for one the following file types:",
-      types: {
-        "Shapefile": "A Shapefile (.zip, ZIP archive containing all shapefile files)",
-        "CSV": "A CSV File (.csv, with address or latitude, longitude and comma, semi-colon or tab delimited)",
-        "KML": "A KML File (.kml)",
-        "GPX": "A GPX File (.gpx, GPS Exchange Format)",
-        "GeoJSON": "A GeoJSON File (.geo.json or .geojson)"
-      },
-      generalizeOn: "Generalize features for web display",
-      dropOrBrowse: "Drop or Browse",
-      browse: "Browse",
-      invalidType: "This file type is not supported.",
-      addingPattern: "{filename}: adding...",
-      addFailedPattern: "{filename}: add failed",
-      featureCountPattern: "{filename}: {count} feature(s)",
-      invalidTypePattern: "{filename}: this type is not supported",
-      maxFeaturesAllowedPattern: "A maximum of {count} features is allowed",
-      layerNamePattern: "{filename} - {name}",
-      generalIssue: "There was an issue.",
-      kmlProjectionMismatch: "The spatial reference of the map and KML layer do not match, and the conversion cannot be done on the client.",
-      featureLocationsCouldNotBeFound: "Features could not be located: unknown or invalid location fields. The file will be added as a table."
-    },
-
-    layerList: {
-      caption: "Layers",
-      noLayersAdded: "No layers have been added.",
-      removeLayer: "Remove Layer",
-      back: "Back"
     }
-  }),
-  "ar": 0,
-  "cs": 0,
-  "da": 0,
-  "de": 0,
-  "el": 0,
-  "es": 0,
-  "et": 0,
-  "fi": 0,
-  "fr": 0,
-  "he": 0,
-  "it": 0,
-  "ja": 0,
-  "ko": 0,
-  "lt": 0,
-  "lv": 0,
-  "nb": 0,
-  "nl": 0,
-  "pl": 0,
-  "pt-br": 0,
-  "pt-pt": 0,
-  "ro": 0,
-  "ru": 0,
-  "sv": 0,
-  "th": 0,
-  "tr": 0,
-  "vi": 0,
-  "zh-cn": 1
+  },
+  "addFromUrl": {
+    "type": "Tipo",
+    "url": "Dirección URL",
+    "types": {
+      "ArcGIS": "Un servicio web de ArcGIS for Server",
+      "WMS": "Un servicio web de WMS OGC",
+      "WMTS": "Un servicio web de WMTS OGC",
+      "WFS": "Un servicio Web de WFS OGC",
+      "KML": "Un archivo KML",
+      "GeoRSS": "Un archivo GeoRSS",
+      "CSV": "Un archivo CSV"
+    },
+    "samplesHint": "Direcciones URL de muestra",
+    "invalidURL": "Introduzca una URL que comience por http:// o https://. "
+  },
+  "addFromFile": {
+    "intro": "Puede colocar o buscar uno de los tipos de archivo siguientes:",
+    "types": {
+      "Shapefile": "Un Shapefile (.zip, archivo ZIP que contiene todos los archivos shapefile)",
+      "CSV": "Un archivo CSV (.csv, con dirección o latitud, longitud y delimitados por comas, puntos o tabuladores)",
+      "KML": "Un archivo KML (.kml)",
+      "GPX": "Un archivo (.gpx, formato de intercambio GPS)",
+      "GeoJSON": "Un archivo GeoJSON (.geo.json o .geojson)"
+    },
+    "generalizeOn": "Generalizar entidades para visualización web",
+    "dropOrBrowse": "Colocar o buscar",
+    "browse": "Examinar",
+    "invalidType": "Este tipo de archivo no es compatible.",
+    "addingPattern": "{filename}: agregando...",
+    "addFailedPattern": "{filename}: error al agregar",
+    "featureCountPattern": "{filename}: {count} entidad(es)",
+    "invalidTypePattern": "{filename}: este tipo no es compatible",
+    "maxFeaturesAllowedPattern": "Se permite un máximo de {count} entidades",
+    "layerNamePattern": "{filename} - {name}",
+    "generalIssue": "Se ha producido un problema.",
+    "kmlProjectionMismatch": "La referencia espacial del mapa y la capa KML no coinciden y no es posible hacer la conversión en el cliente.",
+    "featureLocationsCouldNotBeFound": "No se pudieron localizar las funciones: los campos de ubicación son desconocidos o no son válidos. El archivo se añadirá como tabla."
+  },
+  "layerList": {
+    "caption": "Capas",
+    "noLayersAdded": "No se ha agregado ninguna capa.",
+    "removeLayer": "Quitar capa",
+    "back": "Atrás"
+  }
 });

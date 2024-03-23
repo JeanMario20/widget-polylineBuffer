@@ -1,6 +1,7 @@
 define({
 	root: ({
-		// configText: "Set config text:",
+    // configText: "Set config text:",
+    "_widgetLabel": "Análisis de Ingeniería",
 		numPerPage: "Number of items per page",
     scopeOptions: {
       "defaultScope": "Default search scope",
@@ -21,5 +22,6 @@ define({
     },
     _default: "Default",
     makeDefault: "Make default"
-  })
+  }),
+  "es": 1,
 });

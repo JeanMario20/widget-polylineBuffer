@@ -22,15 +22,7 @@ define(['dojo/_base/declare',
   "jimu/portalUrlUtils",
   "jimu/portalUtils",
   "jimu/tokenUtils",
-  'jimu/BaseWidget',
-  "jimu/dijit/TabContainer3",
-  "./search/SearchContext",
-  "./search/util",
-  "./search/SearchPane",
-  "./search/AddFromUrlPane",
-  "./search/AddFromFilePane",
-  "./search/LayerListPane",
-  "dojo/_base/array",
+  'jimu/BaseWidget',  
   'esri/geometry/Polyline',
   'esri/geometry/Point',
   'esri/graphic',
@@ -44,21 +36,29 @@ define(['dojo/_base/declare',
   'esri/dijit/analysis/InterpolatePoints',
   'esri/symbols/TextSymbol',
   'esri/symbols/Font',
+  "jimu/dijit/TabContainer3",
   "dijit/_WidgetsInTemplateMixin",
+  "./search/SearchContext",
+  "./search/util",
+  "./search/SearchPane",
+  "./search/AddFromUrlPane",
+  "./search/AddFromFilePane",
+  "./search/LayerListPane",
+  "esri/graphicsUtils",
+  "dojo/_base/array"
 ],
 function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUtils,
-  tokenUtils, BaseWidget, TabContainer3, SearchContext,
-  util, SearchPane, AddFromUrlPane, AddFromFilePane, LayerListPane, array,
-  Polyline, Point, Graphic, SimpleLineSymbol, Color, geometryEngine, SimpleFillSymbol,
+  tokenUtils, BaseWidget, Polyline, Point, Graphic, SimpleLineSymbol, Color, geometryEngine, SimpleFillSymbol,
   GraphicsLayer, SimpleMarkerSymbol, GeometryService, InterpolatePoints, TextSymbol, Font,
-  _WidgetsInTemplateMixin) {
+  TabContainer3, _WidgetsInTemplateMixin, SearchContext, 
+  util, SearchPane, AddFromUrlPane, AddFromFilePane, LayerListPane, graphicsUtils, array) {
   //To create a widget, you need to derive from BaseWidget.
   return declare([BaseWidget, _WidgetsInTemplateMixin], {
     // DemoWidget code goes here
 
     //please note that this property is be set by the framework when widget is loaded.
     //templateString: template,
-    name: "Demo",
+    name: "Análisis de Ingeniería",
     baseClass: 'jimu-widget-demo',
     
     batchGeocoderServers: null,
@@ -82,36 +82,7 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
       if (this._started) {
         return;
       }
-      var self = this,  args = arguments;
-      this._getUser().then(function(user) {
-        //console.warn("AddData.user=",user);
-        self._checkConfig();
-        self._initTabs();
-        return self._initContext(user);
-      }).then(function() {
-        self.inherited(args);
-        if (self.tabContainer) {
-          self.tabContainer.startup();
-        } else if (self.searchPane) {
-          self.searchPane.startup();
-        } else if (self.addFromUrlPane) {
-          self.addFromUrlPane.startup();
-        } else if (self.addFromFilePane) {
-          self.addFromFilePane.startup();
-        }
-        self._initFooter(self.tabContainer, {
-          "searchWidget": self.searchPane,
-          "addFromUrlWidget": self.addFromUrlPane,
-          "addFromFileWidget": self.addFromFilePane
-        });
-        self._initListeners();
-        self.resize();
-        //console.warn("AddData.startup",this);
-      }).otherwise(function(error) {
-        console.warn("AddData.startup error:", error);
-        self.inherited(args);
-        self.resize();
-      });
+      
 
       var graphicsLayer = new GraphicsLayer();
       this.map.addLayer(graphicsLayer);
@@ -141,8 +112,10 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
       bufferBoton.addEventListener('click', function() {
 
         console.log('se a creado el buffer')
+        var featureLayer = mapa.getLayer(mapa.graphicsLayerIds[2]);
+        var geometries = graphicsUtils.getGeometries(featureLayer.graphics);
 
-        var buffer = geometryEngine.geodesicBuffer(polyline,10,"kilometers")
+        var buffer = geometryEngine.geodesicBuffer(geometries,50,"meters", true)
         
         var simpleFillSymbol = new SimpleFillSymbol();
         simpleFillSymbol.setColor(new Color([170, 255, 0, 0.25]));
@@ -153,7 +126,7 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
         var line = new SimpleLineSymbol();
         line.setStyle(SimpleLineSymbol.STYLE_NULL);
 
-        var bufferGraphic = new Graphic(buffer, simpleFillSymbol, line)
+        var bufferGraphic = new Graphic(buffer[0], simpleFillSymbol, line)
         
     
         graphicsLayer.add(bufferGraphic)
@@ -432,12 +405,43 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
         return [newX, newY]
 
       }
+
+      var self = this,  args = arguments;
+      this._getUser().then(function(user) {
+        //console.warn("AddData.user=",user);
+        self._checkConfig();
+        self._initTabs();
+        return self._initContext(user);
+      }).then(function() {
+        self.inherited(args);
+        if (self.tabContainer) {
+          self.tabContainer.startup();
+        } else if (self.searchPane) {
+          // self.searchPane.startup();
+        } else if (self.addFromUrlPane) {
+          self.addFromUrlPane.startup();
+        } else if (self.addFromFilePane) {
+          self.addFromFilePane.startup();
+        }
+        self._initFooter(self.tabContainer, {
+          "addFromUrlWidget": self.addFromUrlPane,
+          "addFromFileWidget": self.addFromFilePane,
+          // "searchWidget": self.searchPane,
+        });
+        self._initListeners();
+        self.resize();
+        //console.warn("AddData.startup",this);
+      }).otherwise(function(error) {
+        console.warn("AddData.startup error:", error);
+        self.inherited(args);
+        self.resize();
+      });
     },
 
     onOpen: function(){
-      var bSearch = (this.searchPane && this._searchOnOpen);
+      var bSearch = (this.searchPane && this._addFromFilePaneOpen);
       this._isOpen = true;
-      this._searchOnOpen = false;
+      this._addFromFilePaneOpen = false;
       this.resize();
       if (bSearch) {
         this.searchPane.search();
@@ -733,13 +737,23 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
       chkAllowSearch("Curated");
       chkAllowSearch("ArcGISOnline");
 
-      if (allowSearch) {
-        this.searchPane = new SearchPane({
+      // if (allowSearch) {
+      //   this.searchPane = new SearchPane({
+      //     wabWidget: this
+      //   },this.searchNode);
+      //   tabs.push({
+      //     title: this.nls.tabs.search,
+      //     content: this.searchPane.domNode
+      //   });
+      // }
+      
+      if (supportsFile && config.addFromFile && config.addFromFile.allow) {
+        this.addFromFilePane = new AddFromFilePane({
           wabWidget: this
-        },this.searchNode);
+        },this.fileNode);
         tabs.push({
-          title: this.nls.tabs.search,
-          content: this.searchPane.domNode
+          title: this.nls.tabs.file,
+          content: this.addFromFilePane.domNode
         });
       }
       if (config.addFromUrl && config.addFromUrl.allow) {
@@ -749,15 +763,6 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
         tabs.push({
           title: this.nls.tabs.url,
           content: this.addFromUrlPane.domNode
-        });
-      }
-      if (supportsFile && config.addFromFile && config.addFromFile.allow) {
-        this.addFromFilePane = new AddFromFilePane({
-          wabWidget: this
-        },this.fileNode);
-        tabs.push({
-          title: this.nls.tabs.file,
-          content: this.addFromFilePane.domNode
         });
       }
 

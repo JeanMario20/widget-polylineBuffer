@@ -1,5 +1,6 @@
 {
-  "name": "Demo",
+  "name": "Demo",  
+  "label": "Análisis de Ingeniería",
   "platform": "HTML",
   "version": "2.29",
   "wabVersion": "2.29",
