@@ -113,9 +113,10 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
 
         console.log('se a creado el buffer')
         var featureLayer = mapa.getLayer(mapa.graphicsLayerIds[2]);
-        var geometries = graphicsUtils.getGeometries(featureLayer.graphics);
+        //var geometries = graphicsUtils.getGeometries(featureLayer.graphics);
 
-        var buffer = geometryEngine.geodesicBuffer(geometries,50,"meters", true)
+        //var buffer = geometryEngine.geodesicBuffer(geometries,50,"meters", true)
+        var buffer = geometryEngine.geodesicBuffer(polyline,50,"kilometers", true)
         
         var simpleFillSymbol = new SimpleFillSymbol();
         simpleFillSymbol.setColor(new Color([170, 255, 0, 0.25]));
@@ -126,7 +127,8 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
         var line = new SimpleLineSymbol();
         line.setStyle(SimpleLineSymbol.STYLE_NULL);
 
-        var bufferGraphic = new Graphic(buffer[0], simpleFillSymbol, line)
+        //var bufferGraphic = new Graphic(buffer[0], simpleFillSymbol, line)
+        var bufferGraphic = new Graphic(buffer, simpleFillSymbol, line)
         
     
         graphicsLayer.add(bufferGraphic)
@@ -227,7 +229,7 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
         puntosInteres.forEach(recorrido);
         function recorrido(puntos, index, array){ //en el array se estan tomando en cuenta para almacenenar los puntos a identificar 
           var resultado = geometryEngine.nearestCoordinate(buffer,puntos)
-          var prueba = null
+          /*var prueba = null
           mapa.graphicsLayerIds.forEach(function(layer){
             if (layer === 'buffer' || layer == "graphicsLayer1"){
               console.log(layer)
@@ -254,7 +256,7 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
             console.log("Atributos:", grafico.attributes);
             console.log("Símbolo:", grafico.symbol);
             console.log("----");
-        });
+        });*/
 
           if(resultado.distance === 0){
             console.log('un punto se encuentra dentro del buffer')
