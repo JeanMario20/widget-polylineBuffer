@@ -45,13 +45,16 @@ define(['dojo/_base/declare',
   "./search/AddFromFilePane",
   "./search/LayerListPane",
   "esri/graphicsUtils",
-  "dojo/_base/array"
+  "dojo/_base/array",
+  "esri/dijit/Popup",
+  "esri/dijit/PopupTemplate",
+  "dojo/domReady!"
 ],
 function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUtils,
   tokenUtils, BaseWidget, Polyline, Point, Graphic, SimpleLineSymbol, Color, geometryEngine, SimpleFillSymbol,
   GraphicsLayer, SimpleMarkerSymbol, GeometryService, InterpolatePoints, TextSymbol, Font,
   TabContainer3, _WidgetsInTemplateMixin, SearchContext, 
-  util, SearchPane, AddFromUrlPane, AddFromFilePane, LayerListPane, graphicsUtils, array) {
+  util, SearchPane, AddFromUrlPane, AddFromFilePane, LayerListPane, graphicsUtils, array, Popup, PopupTemplate) {
   //To create a widget, you need to derive from BaseWidget.
   return declare([BaseWidget, _WidgetsInTemplateMixin], {
     // DemoWidget code goes here
@@ -71,7 +74,6 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
     searchPane: null,
     addFromUrlPane: null,
     addFromFilePane: null,
-      
     postCreate: function() {
       this.inherited(arguments);
       console.log('postCreate');
@@ -108,7 +110,9 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
       var estacionDecimetro = "0"
       var estacionCentimetro = "0"
       var totalEstacionKilometro = estacionMillar + "+" + estacionCentenas + estacionDecenas + estacionUnidades + "." + estacionDecimetro + estacionCentimetro
-      console.log(totalEstacionKilometro)
+      
+      
+
 
       boton.addEventListener('click', function() {
         
@@ -316,7 +320,7 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
         puntosAencontrar = !puntosAencontrar
         console.log(puntosAencontrar)
       })
-      
+
       this.map.on("click", function(event){
         console.log('se a oprimido')
 
@@ -345,6 +349,7 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
           var simpleLineSymbol = new SimpleLineSymbol();
           simpleLineSymbol.setColor(new Color([0,0,0,10]));
           var polyLineGraphic = new Graphic(polyline, simpleLineSymbol);
+          polyLineGraphic.attributes ={ id: "polyline_manual"}
           polylineGrap = polyLineGraphic.geometry
 
           var simpleMarkerSymbol = new SimpleMarkerSymbol()
@@ -357,6 +362,18 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
         }
         else if(!dibujarLineas){
           console.log('no se esta dibujando')
+
+          graphicsLayer.on("mouse-over", function(event){
+            if(event.graphic.attributes && event.graphic.attributes.id ==="polyline_manual"){
+              var popup = new PopupTemplate({
+                title: "esto es un nombre",
+                description: "esto es una descripcion"
+              })
+    
+              var graphic = new Graphic(event.graphic.geometry, event.graphic.symbol, event.graphic.attributes, popup)
+              graphicsLayer.add(graphic)
+            }
+          })
           
           console.log(polylineCoordenates)
 
@@ -435,7 +452,7 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
         estacionCentenas = centenas.toString()
         estacionDecenas = decenas.toString()
         estacionUnidades = unidades.toString()
-        estacionDecimetro = decimalesF.toString()
+        estacionDecimetro = decimales.toString()
         estacionCentimetro = centesimas.toString()
 
         totalEstacionKilometro = estacionMillar + "+" + estacionCentenas + estacionDecenas + estacionUnidades + "." + estacionDecimetro + estacionCentimetro
