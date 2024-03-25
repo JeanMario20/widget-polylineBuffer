@@ -125,10 +125,19 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
 
         console.log('se a creado el buffer')
         var featureLayer = mapa.getLayer(mapa.graphicsLayerIds[2]);
-        //var geometries = graphicsUtils.getGeometries(featureLayer.graphics);
+        var geometries = graphicsUtils.getGeometries(featureLayer.graphics);
 
+        if(geometries && polyline){
+          var buffer = geometryEngine.geodesicBuffer(geometries,50,"meters", true)
+          var bufferPolyline = geometryEngine.geodesicBuffer(polyline,1,"kilometers", true)  
+        } else if(polyline){
+          var bufferPolyline = geometryEngine.geodesicBuffer(polyline,1,"kilometers", true)  
+        } else if(geometries){
+          var buffer = geometryEngine.geodesicBuffer(geometries,50,"meters", true)
+        }
+        
         //var buffer = geometryEngine.geodesicBuffer(geometries,50,"meters", true)
-        var buffer = geometryEngine.geodesicBuffer(polyline,50,"kilometers", true)
+        //var bufferPolyline = geometryEngine.geodesicBuffer(polyline,1,"kilometers", true)
         
         var simpleFillSymbol = new SimpleFillSymbol();
         simpleFillSymbol.setColor(new Color([170, 255, 0, 0.25]));
@@ -139,11 +148,26 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
         var line = new SimpleLineSymbol();
         line.setStyle(SimpleLineSymbol.STYLE_NULL);
 
-        //var bufferGraphic = new Graphic(buffer[0], simpleFillSymbol, line)
-        var bufferGraphic = new Graphic(buffer, simpleFillSymbol, line)
+        if(geometries && polyline){
+          var bufferGraphic = new Graphic(buffer[0], simpleFillSymbol, line)
+          graphicsLayer.add(bufferGraphic)
+          var bufferGraphicPolyline = new Graphic(bufferPolyline, simpleFillSymbol, line)
+          graphicsLayer.add(bufferGraphicPolyline)
+
+        } else if(polyline){
+          var bufferGraphicPolyline = new Graphic(bufferPolyline, simpleFillSymbol, line)
+          graphicsLayer.add(bufferGraphicPolyline)
+        } else if(geometries){
+          var bufferGraphic = new Graphic(buffer[0], simpleFillSymbol, line)
+          graphicsLayer.add(bufferGraphic)
+        } 
+
+        var bufferGraphic = new Graphic(buffer[0], simpleFillSymbol, line)
+        var bufferGraphicPolyline = new Graphic(bufferPolyline, simpleFillSymbol, line)
         
     
         graphicsLayer.add(bufferGraphic)
+        graphicsLayer.add(bufferGraphicPolyline)
 
 
         //-------------------------------------------------------------------------
@@ -363,15 +387,29 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
         else if(!dibujarLineas){
           console.log('no se esta dibujando')
 
-          graphicsLayer.on("mouse-over", function(event){
+          graphicsLayer.on("click", function(event){
             if(event.graphic.attributes && event.graphic.attributes.id ==="polyline_manual"){
               var popup = new PopupTemplate({
-                title: "esto es un nombre",
-                description: "esto es una descripcion"
+                title: "esto es un nombre"
               })
+
+              popup.setContent('<label for="miInput">Introduce algo:</label>' +
+                              '<input type="text" id="miInput">' +
+                              '<button id="miBoton">Haz clic en mí</button>');
     
               var graphic = new Graphic(event.graphic.geometry, event.graphic.symbol, event.graphic.attributes, popup)
               graphicsLayer.add(graphic)
+
+              setTimeout(function() {
+                var button = document.getElementById("miBoton");
+                if (button) {
+                    button.onclick = function() {
+                        var input = document.getElementById("miInput");
+                        console.log(input.value);
+                    };
+                }
+            }, 0);
+            
             }
           })
           
