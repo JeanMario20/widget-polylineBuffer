@@ -102,7 +102,6 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
       var coordenadaPolylineIntersect = [];
       var polylinePoint = []
       var mapa = this.map
-
       var estacionMillar = "0"
       var estacionCentenas = "0"
       var estacionDecenas = "0"
@@ -110,8 +109,50 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
       var estacionDecimetro = "0"
       var estacionCentimetro = "0"
       var totalEstacionKilometro = estacionMillar + "+" + estacionCentenas + estacionDecenas + estacionUnidades + "." + estacionDecimetro + estacionCentimetro
+
+      var longitudTotalPolyline = null
+      var pointCoords = []
       
-      
+      function getDistance(p1, p2) {
+        const earthRadius = 6371; // Radio de la Tierra en kilómetros
+
+        // Convertir las coordenadas de grados a radianes
+        const lat1Rad = (p1[1] * Math.PI) / 180;
+        const lon1Rad = (p1[0] * Math.PI) / 180;
+        const lat2Rad = (p2[1] * Math.PI) / 180;
+        const lon2Rad = (p2[0] * Math.PI) / 180;
+
+        // Calcular las diferencias de latitud y longitud
+        const dLat = lat2Rad - lat1Rad;
+        const dLon = lon2Rad - lon1Rad;
+
+        // Aplicar la fórmula de Haversine
+        const a =
+          Math.sin(dLat / 2) ** 2 +
+          Math.cos(lat1Rad) * Math.cos(lat2Rad) * Math.sin(dLon / 2) ** 2;
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        const distance = earthRadius * c;
+
+        return distance; // Distancia en kilómetros
+      }
+
+      function getPointAlongPolyline2(vertices, distance) {
+        // Recorre los vértices para encontrar el segmento adecuado
+        let accumulatedDistance = 0;
+        for (let i = 1; i < vertices.length; i++) {
+          const segmentDistance = getDistance(vertices[i - 1], vertices[i]);
+
+            // Calcula la fracción de la distancia en este segmento
+            const remainingDistance = distance - accumulatedDistance;
+            const fraction = remainingDistance / segmentDistance;
+
+            // Interpola las coordenadas del punto
+            const x = vertices[i - 1][0] + fraction * (vertices[i][0] - vertices[i - 1][0]);
+            const y = vertices[i - 1][1] + fraction * (vertices[i][1] - vertices[i - 1][1]);
+
+            return [x, y];
+        }
+      }
 
 
       boton.addEventListener('click', function() {
@@ -125,7 +166,10 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
 
         console.log('se a creado el buffer')
         var featureLayer = mapa.getLayer(mapa.graphicsLayerIds[2]);
-        var geometries = graphicsUtils.getGeometries(featureLayer.graphics);
+        if(featureLayer){
+          var geometries = graphicsUtils.getGeometries(featureLayer.graphics);
+        }
+        
 
         if(geometries && polyline){
           var buffer = geometryEngine.geodesicBuffer(geometries,50,"meters", true)
@@ -162,17 +206,9 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
           graphicsLayer.add(bufferGraphic)
         } 
 
-        var bufferGraphic = new Graphic(buffer[0], simpleFillSymbol, line)
-        var bufferGraphicPolyline = new Graphic(bufferPolyline, simpleFillSymbol, line)
-        
-    
-        graphicsLayer.add(bufferGraphic)
-        graphicsLayer.add(bufferGraphicPolyline)
-
-
         //-------------------------------------------------------------------------
 
-        var longitudTotalPolyline = calcularLongitudPolilinea(polylineCoordenates)
+        longitudTotalPolyline = calcularLongitudPolilinea(polylineCoordenates)
         console.log('la longitud total de la polyline es de ', longitudTotalPolyline, )
         var length = geometryEngine.geodesicLength(polyline, "meters");
         console.log('la longitud total de la polyline con geometryEngine es de ', length )
@@ -184,7 +220,7 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
         // Crea los puntos a lo largo de la polilínea
         for (let i = 0; i < numPoints; i++) {
           const distanceFromStart = i * distanceBetweenPoints;
-          const pointCoords = getPointAlongPolyline(polylineCoordenates, distanceFromStart);
+          pointCoords = getPointAlongPolyline(polylineCoordenates, distanceFromStart);
           var pointJson = {
             "x": pointCoords[0], "y": pointCoords[1], "spatialReference": {"wkid": 4326 } 
           }
@@ -393,9 +429,9 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
                 title: "esto es un nombre"
               })
 
-              popup.setContent('<label for="miInput">Introduce algo:</label>' +
-                              '<input type="text" id="miInput">' +
-                              '<button id="miBoton">Haz clic en mí</button>');
+              popup.setContent('<label for="miInput">Introduce distancia a segmentar:</label>' +
+                              '<input type="number" id="miInput">' +
+                              '<button id="miBoton">calcular</button>');
     
               var graphic = new Graphic(event.graphic.geometry, event.graphic.symbol, event.graphic.attributes, popup)
               graphicsLayer.add(graphic)
@@ -405,6 +441,50 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
                 if (button) {
                     button.onclick = function() {
                         var input = document.getElementById("miInput");
+                        var inputNum = parseInt(input.value)
+
+                        const numPoints = 10;
+                        var segmentacionPoints = []
+                        pointCoords = []
+                        
+
+                        const distanceBetweenPoints = inputNum;
+                        //distanceBetweenPoints = 0.1
+                
+                        // Crea los puntos a lo largo de la polilínea
+                        for (let i = 0; i < numPoints + 1; i++) {
+                          const distanceFromStart = i * distanceBetweenPoints;
+                          pointCoords = getPointAlongPolyline2(polylineCoordenates, distanceFromStart);
+                          var pointJson = {
+                            "x": pointCoords[0], "y": pointCoords[1], "spatialReference": {"wkid": 4326 } 
+                          }
+                          var point = new Point(pointJson)
+                          //polylinePoint.push(pointCoords)
+                          segmentacionPoints.push(pointCoords)
+                          var simpleMarkerSymbol = new SimpleMarkerSymbol()
+                          var pointGraphic = new Graphic(point,simpleMarkerSymbol)
+
+                          var kilometraje = getDistance(polylineCoordenates[0],[point.x, point.y])
+                          var kilmetrajeToFixed = kilometraje.toFixed(2)
+                          var kilometroTotalFormato = DescomponerKilometro(kilmetrajeToFixed)
+                          console.log(kilometroTotalFormato)
+                          var kilometrajeString = kilometroTotalFormato.toString()
+
+                          var textSymbolSegmentar = new TextSymbol(kilometrajeString).setHorizontalAlignment('right').setVerticalAlignment('buttom')
+                          var textSegmentar = new Graphic(point,textSymbolSegmentar)
+                
+                          //graphicsLayer.add(pointGraphic)
+                          graphicsLayer.add(textSegmentar)
+
+                          var limitarSegmentacion = geometryEngine.intersects(polyline, point);
+                          if(!limitarSegmentacion){
+                            graphicsLayer.remove(pointGraphic)
+                            //Point.remove(point) ?? remover la geometria? 
+                            break;
+                          }
+                        }
+                
+                        //segmentacion(polylinePoint,inputNum)
                         console.log(input.value);
                     };
                 }
@@ -496,6 +576,19 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
         totalEstacionKilometro = estacionMillar + "+" + estacionCentenas + estacionDecenas + estacionUnidades + "." + estacionDecimetro + estacionCentimetro
 
         return totalEstacionKilometro
+      }
+
+      function segmentacion(vertices, distanciaSegmento) {
+        let longitudTotal = 0;
+        for (let i = 0; i < vertices.length - 1; i++) {
+          const distancia = getDistance(vertices[i], vertices[i + 1]);
+          longitudTotal += distancia;
+          if (distancia >= distanciaSegmento){
+            //marcar un text en la polyline
+            console.log('aqui hay un segmento')
+          }
+        }
+        return longitudTotal;
       }
 
       var self = this,  args = arguments;
