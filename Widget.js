@@ -113,46 +113,6 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
       var longitudTotalPolyline = null
       var pointCoords = []
       
-      function getDistance(p1, p2) {
-        const earthRadius = 6371; // Radio de la Tierra en kilómetros
-
-        // Convertir las coordenadas de grados a radianes
-        const lat1Rad = (p1[1] * Math.PI) / 180;
-        const lon1Rad = (p1[0] * Math.PI) / 180;
-        const lat2Rad = (p2[1] * Math.PI) / 180;
-        const lon2Rad = (p2[0] * Math.PI) / 180;
-
-        // Calcular las diferencias de latitud y longitud
-        const dLat = lat2Rad - lat1Rad;
-        const dLon = lon2Rad - lon1Rad;
-
-        // Aplicar la fórmula de Haversine
-        const a =
-          Math.sin(dLat / 2) ** 2 +
-          Math.cos(lat1Rad) * Math.cos(lat2Rad) * Math.sin(dLon / 2) ** 2;
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        const distance = earthRadius * c;
-
-        return distance; // Distancia en kilómetros
-      }
-
-      function getPointAlongPolyline2(vertices, distance) {
-        // Recorre los vértices para encontrar el segmento adecuado
-        let accumulatedDistance = 0;
-        for (let i = 1; i < vertices.length; i++) {
-          const segmentDistance = getDistance(vertices[i - 1], vertices[i]);
-
-            // Calcula la fracción de la distancia en este segmento
-            const remainingDistance = distance - accumulatedDistance;
-            const fraction = remainingDistance / segmentDistance;
-
-            // Interpola las coordenadas del punto
-            const x = vertices[i - 1][0] + fraction * (vertices[i][0] - vertices[i - 1][0]);
-            const y = vertices[i - 1][1] + fraction * (vertices[i][1] - vertices[i - 1][1]);
-
-            return [x, y];
-        }
-      }
 
 
       boton.addEventListener('click', function() {
@@ -163,6 +123,44 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
       })
 
       bufferBoton.addEventListener('click', function() {
+
+        var prueba = null
+          mapa.graphicsLayerIds.forEach(function(layer){
+            if (layer === 'buffer' || layer == "graphicsLayer1"){
+              console.log(layer)
+            } else if(layer === 'graphicsLayer1'){
+              console.log(layer)
+            } else if(layer === "marker-feature-action-layer"){
+              console.log(layer)
+            }
+            else{
+              console.log(layer)
+              prueba = layer
+            }
+          })
+
+          //console.log(prueba)
+
+          //var prueba = mapa.graphicsLayerIds[1]
+          //pruebas de conversion de coordenadas ------------------------------------------------------------
+
+          let capasAgregadas = mapa.getLayer(prueba);
+          let todosLosGraficos = capasAgregadas.graphics;
+          todosLosGraficos.forEach(function(grafico) {
+            //console.log("ID del gráfico:", grafico.id);
+            console.log("Geometría:", grafico.geometry);
+            console.log(grafico.geometry.paths[0])
+            var coordMts = grafico.geometry.paths[0][0]
+            var coordX = coordMts[0]
+            var coordY = coordMts[1]
+
+            var GetCoord = decimalToDMS(coordX, coordY)
+
+            console.log(GetCoord)
+
+
+            console.log("----");
+        });
 
         console.log('se a creado el buffer')
         var featureLayer = mapa.getLayer(mapa.graphicsLayerIds[2]);
@@ -301,34 +299,7 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
         puntosInteres.forEach(recorrido);
         function recorrido(puntos, index, array){ //en el array se estan tomando en cuenta para almacenenar los puntos a identificar 
           var resultado = geometryEngine.nearestCoordinate(buffer,puntos)
-          /*var prueba = null
-          mapa.graphicsLayerIds.forEach(function(layer){
-            if (layer === 'buffer' || layer == "graphicsLayer1"){
-              console.log(layer)
-            } else if(layer === 'graphicsLayer1'){
-              console.log(layer)
-            } else if(layer === "marker-feature-action-layer"){
-              console.log(layer)
-            }
-            else{
-              console.log(layer)
-              prueba = layer
-            }
-          })
-
-          //console.log(prueba)
-
-          //var prueba = mapa.graphicsLayerIds[1]
-
-          let capasAgregadas = mapa.getLayer(prueba);
-          let todosLosGraficos = capasAgregadas.graphics;
-          todosLosGraficos.forEach(function(grafico) {
-            console.log("ID del gráfico:", grafico.id);
-            console.log("Geometría:", grafico.geometry);
-            console.log("Atributos:", grafico.attributes);
-            console.log("Símbolo:", grafico.symbol);
-            console.log("----");
-        });*/
+          
 
           if(resultado.distance === 0){
             console.log('un punto se encuentra dentro del buffer')
@@ -443,7 +414,7 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
                         var input = document.getElementById("miInput");
                         var inputNum = parseInt(input.value)
 
-                        const numPoints = 10;
+                        const numPoints = 100;
                         var segmentacionPoints = []
                         pointCoords = []
                         
@@ -590,6 +561,75 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
         }
         return longitudTotal;
       }
+
+      function getDistance(p1, p2) {
+        const earthRadius = 6371; // Radio de la Tierra en kilómetros
+
+        // Convertir las coordenadas de grados a radianes
+        const lat1Rad = (p1[1] * Math.PI) / 180;
+        const lon1Rad = (p1[0] * Math.PI) / 180;
+        const lat2Rad = (p2[1] * Math.PI) / 180;
+        const lon2Rad = (p2[0] * Math.PI) / 180;
+
+        // Calcular las diferencias de latitud y longitud
+        const dLat = lat2Rad - lat1Rad;
+        const dLon = lon2Rad - lon1Rad;
+
+        // Aplicar la fórmula de Haversine
+        const a =
+          Math.sin(dLat / 2) ** 2 +
+          Math.cos(lat1Rad) * Math.cos(lat2Rad) * Math.sin(dLon / 2) ** 2;
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        const distance = earthRadius * c;
+
+        return distance; // Distancia en kilómetros
+      }
+
+      function getPointAlongPolyline2(vertices, distance) {
+        // Recorre los vértices para encontrar el segmento adecuado
+        let accumulatedDistance = 0;
+        for (let i = 1; i < vertices.length; i++) {
+          const segmentDistance = getDistance(vertices[i - 1], vertices[i]);
+
+            // Calcula la fracción de la distancia en este segmento
+            const remainingDistance = distance - accumulatedDistance;
+            const fraction = remainingDistance / segmentDistance;
+
+            // Interpola las coordenadas del punto
+            const x = vertices[i - 1][0] + fraction * (vertices[i][0] - vertices[i - 1][0]);
+            const y = vertices[i - 1][1] + fraction * (vertices[i][1] - vertices[i - 1][1]);
+
+            return [x, y];
+        }
+      }
+
+      function decimalToDMS(CoordX, CoordY) {
+        /*const degrees = Math.floor(decimal);
+        const minutesDecimal = (decimal - degrees) * 60;
+        const minutes = Math.floor(minutesDecimal);
+        const seconds = (minutesDecimal - minutes) * 60;
+
+        const grados = coord / 111319.9
+        const minutos = (grados - grados.toFixed()) * 60
+        const segundos 
+    
+        return `${degrees}° ${minutes}' ${seconds.toFixed(2)}"`;*/
+
+        const e = 2.7182818284;
+        const X = 20037508.34;
+
+        // Convierte la longitud de EPSG:3857 a EPSG:4326
+        const long4326 = (CoordY * 180) / X;
+
+        // Convierte la latitud de EPSG:3857 a EPSG:4326
+        let lat4326 = CoordX / (X / 180);
+        const exponent = (Math.PI / 180) * lat4326;
+        lat4326 = Math.atan(e ** exponent);
+        lat4326 = lat4326 / (Math.PI / 360);
+        lat4326 = lat4326 - 90;
+
+        return { lat: lat4326, lng: long4326 };
+    }
 
       var self = this,  args = arguments;
       this._getUser().then(function(user) {
