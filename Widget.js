@@ -124,44 +124,6 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
 
       bufferBoton.addEventListener('click', function() {
 
-        var prueba = null
-          mapa.graphicsLayerIds.forEach(function(layer){
-            if (layer === 'buffer' || layer == "graphicsLayer1"){
-              console.log(layer)
-            } else if(layer === 'graphicsLayer1'){
-              console.log(layer)
-            } else if(layer === "marker-feature-action-layer"){
-              console.log(layer)
-            }
-            else{
-              console.log(layer)
-              prueba = layer
-            }
-          })
-
-          //console.log(prueba)
-
-          //var prueba = mapa.graphicsLayerIds[1]
-          //pruebas de conversion de coordenadas ------------------------------------------------------------
-
-          let capasAgregadas = mapa.getLayer(prueba);
-          let todosLosGraficos = capasAgregadas.graphics;
-          todosLosGraficos.forEach(function(grafico) {
-            //console.log("ID del gráfico:", grafico.id);
-            console.log("Geometría:", grafico.geometry);
-            console.log(grafico.geometry.paths[0])
-            var coordMts = grafico.geometry.paths[0][0]
-            var coordX = coordMts[0]
-            var coordY = coordMts[1]
-
-            var GetCoord = decimalToDMS(coordX, coordY)
-
-            console.log(GetCoord)
-
-
-            console.log("----");
-        });
-
         console.log('se a creado el buffer')
         var featureLayer = mapa.getLayer(mapa.graphicsLayerIds[2]);
         if(featureLayer){
@@ -205,6 +167,50 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
         } 
 
         //-------------------------------------------------------------------------
+
+        var prueba = null
+          mapa.graphicsLayerIds.forEach(function(layer){
+            if (layer === 'buffer' || layer == "graphicsLayer1"){
+              console.log(layer)
+            } else if(layer === 'graphicsLayer1'){
+              console.log(layer)
+            } else if(layer === "marker-feature-action-layer"){
+              console.log(layer)
+            }
+            else{
+              console.log(layer)
+              prueba = layer
+            }
+          })
+
+          //console.log(prueba)
+
+          //var prueba = mapa.graphicsLayerIds[1]
+          //pruebas de conversion de coordenadas ------------------------------------------------------------
+
+          let capasAgregadas = mapa.getLayer(prueba);
+          let todosLosGraficos = capasAgregadas.graphics;
+          todosLosGraficos.forEach(function(grafico) {
+            //console.log("ID del gráfico:", grafico.id);
+            console.log("Geometría:", grafico.geometry);
+            console.log(grafico.geometry.paths[0])
+            var coordMts = grafico.geometry.paths[0][0]
+            var coordX = coordMts[0]
+            var coordY = coordMts[1]
+
+
+            var GetCoordXY = decimalToDMS2(coordX,coordY)
+
+            var simpleMarkerSymbol = new SimpleMarkerSymbol()
+            var pointGraphic = new Graphic(GetCoordXY, simpleMarkerSymbol)
+            polylinePoint.push(GetCoordXY.x, GetCoordXY.y)
+            
+  
+            graphicsLayer.add(pointGraphic)
+
+
+            console.log("----");
+        });
 
         longitudTotalPolyline = calcularLongitudPolilinea(polylineCoordenates)
         console.log('la longitud total de la polyline es de ', longitudTotalPolyline, )
@@ -603,32 +609,15 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
         }
       }
 
-      function decimalToDMS(CoordX, CoordY) {
-        /*const degrees = Math.floor(decimal);
-        const minutesDecimal = (decimal - degrees) * 60;
-        const minutes = Math.floor(minutesDecimal);
-        const seconds = (minutesDecimal - minutes) * 60;
+    function decimalToDMS2(x,y){
+      // Crea una geometría de punto
+      const puntoWebMercator = new esri.geometry.Point(x,y);
 
-        const grados = coord / 111319.9
-        const minutos = (grados - grados.toFixed()) * 60
-        const segundos 
-    
-        return `${degrees}° ${minutes}' ${seconds.toFixed(2)}"`;*/
+      // Convierte a WGS84
+      const puntoWGS84 = esri.geometry.webMercatorToGeographic(puntoWebMercator);
 
-        const e = 2.7182818284;
-        const X = 20037508.34;
-
-        // Convierte la longitud de EPSG:3857 a EPSG:4326
-        const long4326 = (CoordY * 180) / X;
-
-        // Convierte la latitud de EPSG:3857 a EPSG:4326
-        let lat4326 = CoordX / (X / 180);
-        const exponent = (Math.PI / 180) * lat4326;
-        lat4326 = Math.atan(e ** exponent);
-        lat4326 = lat4326 / (Math.PI / 360);
-        lat4326 = lat4326 - 90;
-
-        return { lat: lat4326, lng: long4326 };
+      //regresa la geometria con coordenadas y referencia de espacio
+      return puntoWGS84
     }
 
       var self = this,  args = arguments;
