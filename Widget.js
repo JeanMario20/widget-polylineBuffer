@@ -111,9 +111,10 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
       var totalEstacionKilometro = estacionMillar + "+" + estacionCentenas + estacionDecenas + estacionUnidades + "." + estacionDecimetro + estacionCentimetro
       var longitudTotalPolyline = null
       var pointCoords = []
-      
       var polylinePuntosSegmentos = []
       var pruebaTodasLasPolyline = []
+
+      var esManual = false
       var rutasConvertidas = []
       var rutasPruebaArchivos = []
 
@@ -172,6 +173,7 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
         //-------------------------------------------------------------------------
 
         var prueba = null
+        if(!esManual){
           mapa.graphicsLayerIds.forEach(function(layer){
             if (layer === 'buffer' || layer == "graphicsLayer1"){
               console.log(layer)
@@ -183,16 +185,21 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
             else{
               console.log(layer)
               prueba = layer
+              console.log('si paso')
             }
           })
+        }
+          
 
           //console.log(prueba)
 
           //var prueba = mapa.graphicsLayerIds[1]
           //pruebas de conversion de coordenadas ------------------------------------------------------------
 
-          let capasAgregadas = mapa.getLayer(prueba);
-          let todosLosGraficos = capasAgregadas.graphics;
+        if(!esManual){
+        let capasAgregadas = mapa.getLayer(prueba);
+        let todosLosGraficos = capasAgregadas.graphics;
+        if (todosLosGraficos){
           todosLosGraficos.forEach(function(grafico) {
             //console.log("ID del gráfico:", grafico.id);
             //console.log("Geometría:", grafico.geometry);
@@ -234,13 +241,10 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
               //2: [[x,y],[x,y] ]
               //3: [[x,y],[x,y] ] etc
               polylineCoordenates = []
-              
-              //polylinePuntosSegmentos.push(polylinePoint)
-              //crearPolylineArchivo(polylinePuntosSegmentos);
-              //polylinePoint = []
-              //polylinePuntosSegmentos = []
-            })
-        });
+              })
+            });
+          }
+        }  
         
 
         longitudTotalPolyline = calcularLongitudPolilinea(polylineCoordenates)
@@ -335,7 +339,9 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
         //conectar el punto de interes con el point de la polyne
         puntosInteres.forEach(recorrido);
         function recorrido(puntos, index, array){ //en el array se estan tomando en cuenta para almacenenar los puntos a identificar 
-          var resultado = geometryEngine.nearestCoordinate(buffer,puntos)
+          //var resultado = geometryEngine.nearestCoordinate(buffer,puntos)
+          var resultado = geometryEngine.nearestCoordinate(bufferPolyline,puntos)
+          var resultadoPolylineManual = geometryEngine.nearestCoordinate(bufferPolyline, puntos)
           
 
           if(resultado.distance === 0){
@@ -425,6 +431,7 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
 
           graphicsLayer.add(pointGraphic)
           graphicsLayer.add(polyLineGraphic)
+          esManual = true;
 
         
         }
