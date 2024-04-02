@@ -109,10 +109,13 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
       var estacionDecimetro = "0"
       var estacionCentimetro = "0"
       var totalEstacionKilometro = estacionMillar + "+" + estacionCentenas + estacionDecenas + estacionUnidades + "." + estacionDecimetro + estacionCentimetro
-
       var longitudTotalPolyline = null
       var pointCoords = []
       
+      var polylinePuntosSegmentos = []
+      var pruebaTodasLasPolyline = []
+      var rutasConvertidas = []
+      var rutasPruebaArchivos = []
 
 
       boton.addEventListener('click', function() {
@@ -192,25 +195,53 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
           let todosLosGraficos = capasAgregadas.graphics;
           todosLosGraficos.forEach(function(grafico) {
             //console.log("ID del gráfico:", grafico.id);
-            console.log("Geometría:", grafico.geometry);
-            console.log(grafico.geometry.paths[0])
-            var coordMts = grafico.geometry.paths[0][0]
-            var coordX = coordMts[0]
-            var coordY = coordMts[1]
+            //console.log("Geometría:", grafico.geometry);
 
+            pruebaTodasLasPolyline.push(grafico.geometry.paths)
+            console.log(pruebaTodasLasPolyline)
 
-            var GetCoordXY = decimalToDMS2(coordX,coordY)
+            let coordenadasMatriz = grafico.geometry.paths
+            coordenadasMatriz.forEach((arregloInterno, indice) => {
+              arregloInterno.forEach((coordenadas) => {
+                var coordMts = coordenadas
+                var GetCoordXY = decimalToDMS2(coordMts[0],coordMts[1])
+                var simpleMarkerSymbol = new SimpleMarkerSymbol()
+                var pointGraphic = new Graphic(GetCoordXY, simpleMarkerSymbol)
+                graphicsLayer.add(pointGraphic)
 
-            var simpleMarkerSymbol = new SimpleMarkerSymbol()
-            var pointGraphic = new Graphic(GetCoordXY, simpleMarkerSymbol)
-            polylinePoint.push(GetCoordXY.x, GetCoordXY.y)
-            
-  
-            graphicsLayer.add(pointGraphic)
+                //agregar la polyline
+                vertices = [GetCoordXY.x, GetCoordXY.y]
+                polylineCoordenates.push(vertices)
 
+                
+                
+                //polylinePoint.push(GetCoordXY.x, GetCoordXY.y)
+              })
+              polylinePuntosSegmentos.push([polylineCoordenates])
+              console.log(polylinePuntosSegmentos)
+              var polylineJson = {
+                  "paths": [polylineCoordenates],
+                  "spatialReference":{"wkid":4326}
+                };
+              polyline = new Polyline(polylineJson)
+              var simpleLineSymbol = new SimpleLineSymbol();
+              simpleLineSymbol.setColor(new Color([0,0,0,10]));
+              var polyLineGraphic = new Graphic(polyline, simpleLineSymbol);
+              graphicsLayer.add(polyLineGraphic)
 
-            console.log("----");
+              //poblema con la polylineCoordenates se llenan todas las coordenadas cuando deberian de ser
+              //1: [[x,y],[x,y] ]
+              //2: [[x,y],[x,y] ]
+              //3: [[x,y],[x,y] ] etc
+              polylineCoordenates = []
+              
+              //polylinePuntosSegmentos.push(polylinePoint)
+              //crearPolylineArchivo(polylinePuntosSegmentos);
+              //polylinePoint = []
+              //polylinePuntosSegmentos = []
+            })
         });
+        
 
         longitudTotalPolyline = calcularLongitudPolilinea(polylineCoordenates)
         console.log('la longitud total de la polyline es de ', longitudTotalPolyline, )
@@ -609,6 +640,19 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
         }
       }
 
+      
+      function decimalToDMS3(element){
+        // Crea una geometría de punto
+
+        const puntoWebMercator = new esri.geometry.Point(element[0],element[1]);
+  
+        // Convierte a WGS84
+        const puntoWGS84 = esri.geometry.webMercatorToGeographic(puntoWebMercator);
+  
+        //regresa la geometria con coordenadas y referencia de espacio
+        return puntoWGS84
+      }
+
     function decimalToDMS2(x,y){
       // Crea una geometría de punto
       const puntoWebMercator = new esri.geometry.Point(x,y);
@@ -618,6 +662,36 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
 
       //regresa la geometria con coordenadas y referencia de espacio
       return puntoWGS84
+    }
+
+    function crearPolylineArchivo(coordenadas){
+
+    const arregloCoordenadas = coordenadas
+    //console.log(arregloCoordenadas[0][0])
+    //console.log(arregloCoordenadas[0][1])
+
+    for (let i = 0; i < arregloCoordenadas.length; i += 1) {
+      console.log(arregloCoordenadas.array)
+      for(let j = 0; j < arregloCoordenadas.length; j += 2) {
+        vertices = [arregloCoordenadas[i][j], arregloCoordenadas[i][i + 1]]
+        polylineCoordenates.push(vertices)
+
+        var polylineJson = {
+          "paths": [polylineCoordenates],
+          "spatialReference":{"wkid":4326}
+        };
+        polyline = new Polyline(polylineJson)
+
+        console.log(polyline)
+
+        var simpleLineSymbol = new SimpleLineSymbol();
+        simpleLineSymbol.setColor(new Color([0,0,0,10]));
+        var polyLineGraphic = new Graphic(polyline, simpleLineSymbol);
+        polylineGrap = polyLineGraphic.geometry
+        graphicsLayer.add(polyLineGraphic)
+
+      }
+  }
     }
 
       var self = this,  args = arguments;
