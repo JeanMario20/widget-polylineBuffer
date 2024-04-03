@@ -195,8 +195,9 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
 
           //var prueba = mapa.graphicsLayerIds[1]
           //pruebas de conversion de coordenadas ------------------------------------------------------------
-
+          
         if(!esManual){
+          polylineCoordenates = []
         let capasAgregadas = mapa.getLayer(prueba);
         let todosLosGraficos = capasAgregadas.graphics;
         if (todosLosGraficos){
@@ -218,16 +219,18 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
 
                 //agregar la polyline
                 vertices = [GetCoordXY.x, GetCoordXY.y]
-                polylineCoordenates.push(vertices)
+                polylinePuntosSegmentos.push(vertices)
 
                 
                 
                 //polylinePoint.push(GetCoordXY.x, GetCoordXY.y)
               })
-              polylinePuntosSegmentos.push([polylineCoordenates])
-              console.log(polylinePuntosSegmentos)
+              //polylineCoordenates.push([polylinePuntosSegmentos])
+              polylineCoordenates.push(polylinePuntosSegmentos)
+              //polylinePuntosSegmentos.push([polylineCoordenates])
+              //console.log(polylinePuntosSegmentos)
               var polylineJson = {
-                  "paths": [polylineCoordenates],
+                  "paths": [polylinePuntosSegmentos],
                   "spatialReference":{"wkid":4326}
                 };
               polyline = new Polyline(polylineJson)
@@ -240,7 +243,9 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
               //1: [[x,y],[x,y] ]
               //2: [[x,y],[x,y] ]
               //3: [[x,y],[x,y] ] etc
-              polylineCoordenates = []
+              //polylineCoordenates = []
+              console.log(polylineCoordenates)
+              polylinePuntosSegmentos = []
               })
             });
           }
@@ -249,26 +254,55 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
 
         longitudTotalPolyline = calcularLongitudPolilinea(polylineCoordenates)
         console.log('la longitud total de la polyline es de ', longitudTotalPolyline, )
-        var length = geometryEngine.geodesicLength(polyline, "meters");
-        console.log('la longitud total de la polyline con geometryEngine es de ', length )
+        var longitudTotalPolylineGeodesic = geometryEngine.geodesicLength(polyline, "kilometers");
+        console.log('la longitud total de la polyline con geometryEngine es de ', longitudTotalPolylineGeodesic )
 
-        const numPoints = 1000;
-        const distanceBetweenPoints = longitudTotalPolyline / numPoints;
+        const numPoints = 500;
+        const distanceBetweenPoints = longitudTotalPolylineGeodesic / numPoints;
         //distanceBetweenPoints = 0.1
 
+        //poner un for para el array polylineCoordenates
+        // primero se pone 2 puntos para interpolar los puntos
+        // se pone el ultimo punto que se interpolo en un inicio con el siguiente punto para volver a interpolar los puntos
         // Crea los puntos a lo largo de la polilínea
-        for (let i = 0; i < numPoints; i++) {
-          const distanceFromStart = i * distanceBetweenPoints;
-          pointCoords = getPointAlongPolyline(polylineCoordenates, distanceFromStart);
-          var pointJson = {
-            "x": pointCoords[0], "y": pointCoords[1], "spatialReference": {"wkid": 4326 } 
-          }
-          var point = new Point(pointJson)
-          polylinePoint.push(pointCoords)
-          var simpleMarkerSymbol = new SimpleMarkerSymbol()
-          var pointGraphic = new Graphic(point)
 
-          graphicsLayer.add(pointGraphic)
+        for(var i = 0; i < polylineCoordenates.length; i++){
+          var coords = polylineCoordenates[i]
+          for(var j = 0; j < coords.length; j++){
+            var puntoInicio = polylineCoordenates[i][j]
+            var puntoFinal = polylineCoordenates[i][j + 1]
+            var coordIF = [];
+            coordIF.push(puntoInicio, puntoFinal);
+            if(coordIF[1] == undefined){
+              break;
+            }
+            console.log(coordIF)
+
+            for (let i = 0; i < numPoints; i++) {
+              const distanceFromStart = i * distanceBetweenPoints;
+              pointCoords = getPointAlongPolyline(coordIF, distanceFromStart);
+              //en el archivo de 22 km el punto 23 se desvia ya no es una linea recta pero no parece obtener un punto
+              //checar en el mapa si se esta obteniendo todos los puntos
+              //el medir la distancia esta mal arreglarlo
+              if(pointCoords == false) {
+                break;
+              }
+              var pointJson = {
+                "x": pointCoords[0], "y": pointCoords[1], "spatialReference": {"wkid": 4326 } 
+              }
+              var point = new Point(pointJson)
+              polylinePoint.push(pointCoords)
+              var simpleMarkerSymbol = new SimpleMarkerSymbol()
+              simpleMarkerSymbol.setColor(new Color([100,100,0,0.5]));
+              var pointGraphic = new Graphic(point, simpleMarkerSymbol)
+    
+              graphicsLayer.add(pointGraphic)
+              console.log(i)
+              
+              
+            }
+            
+          }
         }
 
         
@@ -276,7 +310,7 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
         // Función para obtener las coordenadas de un punto a lo largo de la polilínea
         function getPointAlongPolyline(vertices, distance) {
           // Verifica si la distancia es válida
-          if (distance < 0 || distance > longitudTotalPolyline) {
+          if (distance < 0 || distance > longitudTotalPolylineGeodesic) {
             console.error("Distancia fuera de los límites de la polilínea.");
             return null;
           }
@@ -295,6 +329,9 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
               const y = vertices[i - 1][1] + fraction * (vertices[i][1] - vertices[i - 1][1]);
 
               return [x, y];
+            }
+            else{
+              return false
             }
             accumulatedDistance += segmentDistance;
             
