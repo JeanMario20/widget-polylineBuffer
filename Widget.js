@@ -48,13 +48,14 @@ define(['dojo/_base/declare',
   "dojo/_base/array",
   "esri/dijit/Popup",
   "esri/dijit/PopupTemplate",
-  "dojo/domReady!"
+  "dojo/domReady!",
+  "esri/geometry/webMercatorUtils",
 ],
 function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUtils,
   tokenUtils, BaseWidget, Polyline, Point, Graphic, SimpleLineSymbol, Color, geometryEngine, SimpleFillSymbol,
   GraphicsLayer, SimpleMarkerSymbol, GeometryService, InterpolatePoints, TextSymbol, Font,
   TabContainer3, _WidgetsInTemplateMixin, SearchContext, 
-  util, SearchPane, AddFromUrlPane, AddFromFilePane, LayerListPane, graphicsUtils, array, Popup, PopupTemplate) {
+  util, SearchPane, AddFromUrlPane, AddFromFilePane, LayerListPane, graphicsUtils, array, Popup, PopupTemplate, webMercatorUtils) {
   //To create a widget, you need to derive from BaseWidget.
   return declare([BaseWidget, _WidgetsInTemplateMixin], {
     // DemoWidget code goes here
@@ -111,12 +112,11 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
       var totalEstacionKilometro = estacionMillar + "+" + estacionCentenas + estacionDecenas + estacionUnidades + "." + estacionDecimetro + estacionCentimetro
       var longitudTotalPolyline = null
       var pointCoords = []
-      var polylinePuntosSegmentos = []
-      var pruebaTodasLasPolyline = []
-
       var esManual = false
-      var rutasConvertidas = []
-      var rutasPruebaArchivos = []
+      
+      var pathsTo84 = []
+      var allPolylines = []
+      
 
 
       boton.addEventListener('click', function() {
@@ -132,16 +132,54 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
         var featureLayer = mapa.getLayer(mapa.graphicsLayerIds[2]);
         if(featureLayer){
           var geometries = graphicsUtils.getGeometries(featureLayer.graphics);
+          for(var i = 0; i < geometries.length; i++){
+            paths = geometries[i].paths[0];
+            for(var j = 0; j < paths.length; j++){
+              
+              var getCoord = paths[j];
+              var punto84 = decimalToDMS2(getCoord[0], getCoord[1])
+              pathsTo84.push([punto84.x, punto84.y])
+              
+            }
+            var polylineJson = {
+              "paths": [pathsTo84],
+              "spatialReference":{"wkid":4326}
+            };
+            polylineCoordenates.push(pathsTo84)
+            polyline = new Polyline(polylineJson)
+            allPolylines.push(polyline)
+            var simpleLineSymbol = new SimpleLineSymbol();
+            simpleLineSymbol.setColor(new Color([100,0,0,10]));
+            var polyLineGraphic = new Graphic(polyline, simpleLineSymbol);
+            graphicsLayer.add(polyLineGraphic)
+            pathsTo84 = []
+          }
+          //console.log(geometries)
+
+          /*for(var i = 0; i < bufferRings.length; i++){
+            var coords = bufferRings[i]
+            for(var j = 0; j < coords.length; j++){
+              var coords84 = decimalToDMS3(coords[j])
+
+            }
+          }*/
+          
         }
+
+        console.log(geometries)
+        console.log(allPolylines)
         
 
         if(geometries && polyline){
-          var buffer = geometryEngine.geodesicBuffer(geometries,50,"meters", true)
-          var bufferPolyline = geometryEngine.geodesicBuffer(polyline,1,"kilometers", true)  
+          var buffer = geometryEngine.geodesicBuffer(allPolylines,50,"meters", true)
+          var prueba = geometryEngine.geodesicBuffer(polyline,50,"meters", true)
+          //var bufferPolyline = geometryEngine.geodesicBuffer(polyline,1,"kilometers", true)  
         } else if(polyline){
           var bufferPolyline = geometryEngine.geodesicBuffer(polyline,1,"kilometers", true)  
         } else if(geometries){
-          var buffer = geometryEngine.geodesicBuffer(geometries,50,"meters", true)
+          //debe de tomar las coordenadas trasnformadas para crear el buffer
+          //bufferCoords84 = geometries.paths
+          var buffer = geometryEngine.geodesicBuffer(allPolylines,50,"meters", true)
         }
         
         //var buffer = geometryEngine.geodesicBuffer(geometries,50,"meters", true)
@@ -159,8 +197,8 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
         if(geometries && polyline){
           var bufferGraphic = new Graphic(buffer[0], simpleFillSymbol, line)
           graphicsLayer.add(bufferGraphic)
-          var bufferGraphicPolyline = new Graphic(bufferPolyline, simpleFillSymbol, line)
-          graphicsLayer.add(bufferGraphicPolyline)
+          //var bufferGraphicPolyline = new Graphic(bufferPolyline, simpleFillSymbol, line)
+          //graphicsLayer.add(bufferGraphicPolyline)
 
         } else if(polyline){
           var bufferGraphicPolyline = new Graphic(bufferPolyline, simpleFillSymbol, line)
@@ -191,12 +229,9 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
         }
           
 
-          //console.log(prueba)
-
-          //var prueba = mapa.graphicsLayerIds[1]
           //pruebas de conversion de coordenadas ------------------------------------------------------------
           
-        if(!esManual){
+        /*if(!esManual){
           polylineCoordenates = []
         let capasAgregadas = mapa.getLayer(prueba);
         let todosLosGraficos = capasAgregadas.graphics;
@@ -206,7 +241,6 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
             //console.log("Geometría:", grafico.geometry);
 
             pruebaTodasLasPolyline.push(grafico.geometry.paths)
-            console.log(pruebaTodasLasPolyline)
 
             let coordenadasMatriz = grafico.geometry.paths
             coordenadasMatriz.forEach((arregloInterno, indice) => {
@@ -221,14 +255,8 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
                 vertices = [GetCoordXY.x, GetCoordXY.y]
                 polylinePuntosSegmentos.push(vertices)
 
-                
-                
-                //polylinePoint.push(GetCoordXY.x, GetCoordXY.y)
               })
-              //polylineCoordenates.push([polylinePuntosSegmentos])
               polylineCoordenates.push(polylinePuntosSegmentos)
-              //polylinePuntosSegmentos.push([polylineCoordenates])
-              //console.log(polylinePuntosSegmentos)
               var polylineJson = {
                   "paths": [polylinePuntosSegmentos],
                   "spatialReference":{"wkid":4326}
@@ -237,21 +265,16 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
               var simpleLineSymbol = new SimpleLineSymbol();
               simpleLineSymbol.setColor(new Color([0,0,0,10]));
               var polyLineGraphic = new Graphic(polyline, simpleLineSymbol);
-              graphicsLayer.add(polyLineGraphic)
-
-              //poblema con la polylineCoordenates se llenan todas las coordenadas cuando deberian de ser
-              //1: [[x,y],[x,y] ]
-              //2: [[x,y],[x,y] ]
-              //3: [[x,y],[x,y] ] etc
-              //polylineCoordenates = []
-              console.log(polylineCoordenates)
+              //graphicsLayer.add(polyLineGraphic)
+              
               polylinePuntosSegmentos = []
               })
             });
           }
-        }  
+        }*/  
         
 
+        console.log(polyline)
         longitudTotalPolyline = calcularLongitudPolilinea(polylineCoordenates)
         console.log('la longitud total de la polyline es de ', longitudTotalPolyline, )
         var longitudTotalPolylineGeodesic = geometryEngine.geodesicLength(polyline, "kilometers");
@@ -276,13 +299,10 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
             if(coordIF[1] == undefined){
               break;
             }
-            console.log(coordIF)
 
             for (let i = 0; i < numPoints; i++) {
               const distanceFromStart = i * distanceBetweenPoints;
               pointCoords = getPointAlongPolyline(coordIF, distanceFromStart);
-              //en el archivo de 22 km el punto 23 se desvia ya no es una linea recta pero no parece obtener un punto
-              //checar en el mapa si se esta obteniendo todos los puntos
               //el medir la distancia esta mal arreglarlo
               if(pointCoords == false) {
                 break;
@@ -294,10 +314,9 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
               polylinePoint.push(pointCoords)
               var simpleMarkerSymbol = new SimpleMarkerSymbol()
               simpleMarkerSymbol.setColor(new Color([100,100,0,0.5]));
-              var pointGraphic = new Graphic(point, simpleMarkerSymbol)
+              var pointGraphic = new Graphic(point)
     
               graphicsLayer.add(pointGraphic)
-              console.log(i)
               
               
             }
@@ -319,6 +338,7 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
           let accumulatedDistance = 0;
           for (let i = 1; i < vertices.length; i++) {
             const segmentDistance = getDistance(vertices[i - 1], vertices[i]);
+            // el if detecta si los puntos a interpolar se encuentra cerca del puntoFinal si es asi deja de producir puntos y pasa a la siguiente fila
             if (accumulatedDistance + segmentDistance >= distance) {
               // Calcula la fracción de la distancia en este segmento
               const remainingDistance = distance - accumulatedDistance;
@@ -376,19 +396,24 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
         //conectar el punto de interes con el point de la polyne
         puntosInteres.forEach(recorrido);
         function recorrido(puntos, index, array){ //en el array se estan tomando en cuenta para almacenenar los puntos a identificar 
-          //var resultado = geometryEngine.nearestCoordinate(buffer,puntos)
-          var resultado = geometryEngine.nearestCoordinate(bufferPolyline,puntos)
-          var resultadoPolylineManual = geometryEngine.nearestCoordinate(bufferPolyline, puntos)
+
+          
+          var resultado = geometryEngine.nearestCoordinate(buffer[0],puntos)
+          
+          
+          
+          //var resultadoPolylineManual = geometryEngine.nearestCoordinate(bufferPolyline, puntos)
           
 
-          if(resultado.distance === 0){
+          if(resultado.distance === 0 /*|| resultadoPolylineManual.distance == 0*/){
             console.log('un punto se encuentra dentro del buffer')
 
             var punto = [puntos.x, puntos.y]
 
             //encontrarCoordenadamasCercana(arrayInterseccion, punto);
             encontrarCoordenadamasCercana(polylinePoint, punto)
-            polylinePoint = []
+            console.log(coordenadaMasCercana)
+            //polylinePoint = []
 
             coordenadaPolylineIntersect.push(punto)
             coordenadaPolylineIntersect.push(coordenadaMasCercana)
@@ -404,7 +429,7 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
             simpleLineSymbol.setColor(new Color([0,0,0,10]));
             var polyLineGraphic = new Graphic(polylineIntersect, simpleLineSymbol);
 
-            var kilometraje = getDistance(polylineCoordenates[0], punto)
+            var kilometraje = getDistance(polylineCoordenates[0][0], punto)
             var kilmetrajeToFixed = kilometraje.toFixed(2)
             var kilometroTotalFormato = DescomponerKilometro(kilmetrajeToFixed)
             console.log(kilometroTotalFormato)
