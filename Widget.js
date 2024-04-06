@@ -132,6 +132,10 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
       bufferBoton.addEventListener('click', function() {
 
         console.log('se a creado el buffer')
+        if(esManual){
+          polylineCoordenates.push(coordManual)
+          console.log(polylineCoordenates)
+        }
         var featureLayer = mapa.getLayer(mapa.graphicsLayerIds[2]);
         if(featureLayer){
           var geometries = graphicsUtils.getGeometries(featureLayer.graphics);
@@ -486,7 +490,6 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
             "spatialReference":{"wkid":4326}
           };
 
-          polylineCoordenates.push(coordManual)
           
           var pointJson = {
             "x": event.mapPoint.getLongitude(), "y": event.mapPoint.getLatitude(), "spatialReference": {"wkid": 4326 } 
