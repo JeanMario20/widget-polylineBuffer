@@ -92,6 +92,7 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
       const boton = document.getElementById("miboton");
       const bufferBoton = document.getElementById("bufferButton");
       const intersectarButton = document.getElementById("intersectarButton");
+      const abrirPanelBtn = document.getElementById("abrir-panel-btn");
       var dibujarLineas = false;
       var puntosAencontrar = false;
       var puntosInteres = [];
@@ -113,9 +114,11 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
       var longitudTotalPolyline = null
       var pointCoords = []
       var esManual = false
-      
       var pathsTo84 = []
       var allPolylines = []
+
+      var puntosInteresEncontrados = []
+      var coordManual = []
       
 
 
@@ -137,6 +140,7 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
             for(var j = 0; j < paths.length; j++){
               
               var getCoord = paths[j];
+
               var punto84 = decimalToDMS2(getCoord[0], getCoord[1])
               pathsTo84.push([punto84.x, punto84.y])
               
@@ -397,15 +401,22 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
         puntosInteres.forEach(recorrido);
         function recorrido(puntos, index, array){ //en el array se estan tomando en cuenta para almacenenar los puntos a identificar 
 
+          if(esManual){
+            var resultadoPolylineManual = geometryEngine.nearestCoordinate(bufferPolyline, puntos)
+            var distance = resultadoPolylineManual.distance
+          }
+          else {
+            var resultado = geometryEngine.nearestCoordinate(buffer[0],puntos)
+            var distance = resultado.distance
+          }
           
-          var resultado = geometryEngine.nearestCoordinate(buffer[0],puntos)
           
           
           
           //var resultadoPolylineManual = geometryEngine.nearestCoordinate(bufferPolyline, puntos)
           
 
-          if(resultado.distance === 0 /*|| resultadoPolylineManual.distance == 0*/){
+          if(distance === 0){
             console.log('un punto se encuentra dentro del buffer')
 
             var punto = [puntos.x, puntos.y]
@@ -446,6 +457,9 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
             graphicsLayer.add(polyLineGraphic)
             graphicsLayer.add(text)
 
+            puntosInteresEncontrados.push(puntos)
+            console.log(puntosInteresEncontrados)
+
           }
         }
 
@@ -464,12 +478,15 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
           console.log('se esta dibujando');
           //polylineCoordenates.push(event.mapPoint)
           vertices = [event.mapPoint.getLongitude(), event.mapPoint.getLatitude()]
-          polylineCoordenates.push(vertices)
+          coordManual.push(vertices)
+          
 
           var polylineJson = {
-            "paths":[polylineCoordenates],
+            "paths":[coordManual],
             "spatialReference":{"wkid":4326}
           };
+
+          polylineCoordenates.push(coordManual)
           
           var pointJson = {
             "x": event.mapPoint.getLongitude(), "y": event.mapPoint.getLatitude(), "spatialReference": {"wkid": 4326 } 
@@ -584,9 +601,21 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
           var interes = new SimpleMarkerSymbol()
           interes.setColor(new Color([100,50,0,10]))
           var pointGraphic = new Graphic(puntoAEncontrar, interes)
+          pointGraphic.attributes = {id:"interes"}
           graphicsLayer.add(pointGraphic)
 
         }
+      })
+
+      abrirPanelBtn.addEventListener('click',function() {
+        var mostrarInformePanel = document.getElementById("informe-container");
+        if(mostrarInformePanel.style.display === "none"){
+          mostrarInformePanel.style.display = "block";
+        } else {
+          mostrarInformePanel.style.display = "none"
+        }
+        
+
       })
 
       function calcularDistancia(coord1, coord2) {
@@ -760,7 +789,7 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
         graphicsLayer.add(polyLineGraphic)
 
       }
-  }
+    }
     }
 
       var self = this,  args = arguments;
