@@ -132,6 +132,7 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
       })
 
       bufferBoton.addEventListener('click', function() {
+        cantidad = 0
 
         console.log('se a creado el buffer')
         //el buffer solo va a identificar los puntos que se hayan asignado como true
