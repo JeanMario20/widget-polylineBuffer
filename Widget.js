@@ -120,6 +120,7 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
       var puntosInteresEncontrados = []
       var coordManual = []
       
+      
 
 
       boton.addEventListener('click', function() {
@@ -132,6 +133,18 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
       bufferBoton.addEventListener('click', function() {
 
         console.log('se a creado el buffer')
+        //el buffer solo va a identificar los puntos que se hayan asignado como true
+        /*var puntoInteresBuscar = document.getElementById("puntoInteresBuscar").innerText;
+        var confirmacion = document.getElementById("Confirmacion");
+        var confirmacionValor = confirmacion.options[confirmacion.selectedIndex].value;
+
+        if(confirmacionValor == false){
+          puntosInteresEncontrados.pop esto se pone al buscar el point si da falso el valor de informe ya no se marca el buffer ni la distancia
+          buscar donde se podria ponerlo y trabajar cuando sean mas de un solo punto
+        }*/
+
+        console.log(puntoInteresBuscar);
+
         if(esManual){
           polylineCoordenates.push(coordManual)
           console.log(polylineCoordenates)
@@ -289,7 +302,7 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
         console.log('la longitud total de la polyline con geometryEngine es de ', longitudTotalPolylineGeodesic )
 
         const numPoints = 500;
-        const distanceBetweenPoints = longitudTotalPolylineGeodesic / numPoints;
+        const distanceBetweenPoints = longitudTotalPolyline / numPoints;
         //distanceBetweenPoints = 0.1
 
         //poner un for para el array polylineCoordenates
@@ -337,7 +350,7 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
         // Función para obtener las coordenadas de un punto a lo largo de la polilínea
         function getPointAlongPolyline(vertices, distance) {
           // Verifica si la distancia es válida
-          if (distance < 0 || distance > longitudTotalPolylineGeodesic) {
+          if (distance < 0 || distance > longitudTotalPolyline) {
             console.error("Distancia fuera de los límites de la polilínea.");
             return null;
           }
@@ -394,9 +407,14 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
 
         function calcularLongitudPolilinea(vertices) {
           let longitudTotal = 0;
-          for (let i = 0; i < vertices.length - 1; i++) {
-            const distancia = getDistance(vertices[i], vertices[i + 1]);
-            longitudTotal += distancia;
+          for (let i = 0; i < vertices.length; i++) {
+            var perVertice = vertices[i]
+            for(let j = 0; j < perVertice.length - 1; j++){
+              const distancia = getDistance(perVertice[j],perVertice[j + 1])
+              longitudTotal += distancia
+            }
+            //const distancia = getDistance(vertices[i], vertices[i + 1]);
+            //longitudTotal += distancia;
           }
           return longitudTotal;
         }
@@ -459,10 +477,7 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
             var text = new Graphic(point,textSymbol)
 
             graphicsLayer.add(polyLineGraphic)
-            graphicsLayer.add(text)
-
-            puntosInteresEncontrados.push(puntos)
-            console.log(puntosInteresEncontrados)
+            graphicsLayer.add(text)            
 
           }
         }
@@ -606,13 +621,32 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
           var pointGraphic = new Graphic(puntoAEncontrar, interes)
           pointGraphic.attributes = {id:"interes"}
           graphicsLayer.add(pointGraphic)
+          puntosInteresEncontrados.push(pointGraphic)
 
         }
       })
 
       abrirPanelBtn.addEventListener('click',function() {
-        var mostrarInformePanel = document.getElementById("informe-container");
+        
+        try{
+          var mostrarInformePanel = document.getElementById("informe-container");
+          var puntosEncontrados = JSON.stringify(puntosInteresEncontrados[0].attributes.id)
+          var cantidad = 1
+          console.log(puntosEncontrados)
+        }catch(e){
+          console.log(e.error)
+          puntosEncontrados = null
+        }
+        
+
         if(mostrarInformePanel.style.display === "none"){
+          if(puntosEncontrados != null){
+            document.getElementById("puntoEncontrado").innerHTML = puntosEncontrados + ":";
+            document.getElementById("cantidadEncontrados").innerHTML = cantidad;
+          }else{
+            document.getElementById("puntoEncontrado").innerHTML = "No se a encontrado datos";
+          }
+          
           mostrarInformePanel.style.display = "block";
         } else {
           mostrarInformePanel.style.display = "none"

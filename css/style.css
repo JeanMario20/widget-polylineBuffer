@@ -14,6 +14,15 @@
   display: none;
 }
 
+#cantidadEncontrados{
+  margin-top: 27px;
+  margin-left: 30px;
+}
+
+.container{
+  display: flex;
+}
+
 /* Estilos para el texto dentro del contenedor */
 .informe-text {
   font-size: 16px;
