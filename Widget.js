@@ -119,6 +119,7 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
 
       var puntosInteresEncontrados = []
       var coordManual = []
+      var cantidad = 0
       
       
 
@@ -134,14 +135,6 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
 
         console.log('se a creado el buffer')
         //el buffer solo va a identificar los puntos que se hayan asignado como true
-        /*var puntoInteresBuscar = document.getElementById("puntoInteresBuscar").innerText;
-        var confirmacion = document.getElementById("Confirmacion");
-        var confirmacionValor = confirmacion.options[confirmacion.selectedIndex].value;
-
-        if(confirmacionValor == false){
-          puntosInteresEncontrados.pop esto se pone al buscar el point si da falso el valor de informe ya no se marca el buffer ni la distancia
-          buscar donde se podria ponerlo y trabajar cuando sean mas de un solo punto
-        }*/
 
         console.log(puntoInteresBuscar);
 
@@ -420,28 +413,42 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
         }
 
         //conectar el punto de interes con el point de la polyne
-        puntosInteres.forEach(recorrido);
+        var puntosGeoGraphic = puntosInteresEncontrados
+        puntosGeoGraphic.forEach(recorrido);
+        //puntosInteres.forEach(recorrido);
         function recorrido(puntos, index, array){ //en el array se estan tomando en cuenta para almacenenar los puntos a identificar 
 
+          var puntoInteresBuscar = document.getElementById("puntoInteresBuscar").innerText;
+          var confirmacion = document.getElementById("Confirmacion");
+          var confirmacionValor = confirmacion.options[confirmacion.selectedIndex].value;
+          if(confirmacionValor === "false"){
+            confirmacionValor = false
+          }else if(confirmacionValor === "true"){
+            confirmacionValor = true
+          }
+          //console.log(puntosInteresEncontrados)
+
+          if(confirmacionValor == false && puntos.attributes.id == puntoInteresBuscar){
+            return false
+          }
+
+          cantidad = cantidad + 1
+
           if(esManual){
-            var resultadoPolylineManual = geometryEngine.nearestCoordinate(bufferPolyline, puntos)
+            var resultadoPolylineManual = geometryEngine.nearestCoordinate(bufferPolyline, puntos.geometry)
             var distance = resultadoPolylineManual.distance
           }
           else {
-            var resultado = geometryEngine.nearestCoordinate(buffer[0],puntos)
+            var resultado = geometryEngine.nearestCoordinate(buffer[0],puntos.geometry)
             var distance = resultado.distance
           }
-          
-          
-          
-          
           //var resultadoPolylineManual = geometryEngine.nearestCoordinate(bufferPolyline, puntos)
           
 
           if(distance === 0){
             console.log('un punto se encuentra dentro del buffer')
 
-            var punto = [puntos.x, puntos.y]
+            var punto = [puntos.geometry.x, puntos.geometry.y]
 
             //encontrarCoordenadamasCercana(arrayInterseccion, punto);
             encontrarCoordenadamasCercana(polylinePoint, punto)
@@ -631,7 +638,7 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
         try{
           var mostrarInformePanel = document.getElementById("informe-container");
           var puntosEncontrados = JSON.stringify(puntosInteresEncontrados[0].attributes.id)
-          var cantidad = 1
+          
           console.log(puntosEncontrados)
         }catch(e){
           console.log(e.error)
