@@ -1,8 +1,7 @@
 
 
-<div>
-  <header>
-  </header>
+<div style="padding-top: 0px; padding-bottom: 0px;">
+  
   <div data-dojo-attach-point="tabsNode"></div>  
   <div data-dojo-attach-point="fileNode"></div>  
   <div data-dojo-attach-point="urlNode"></div>
@@ -11,21 +10,36 @@
 
   <div data-dojo-attach-point="mapIdNode"></div>
   <div data-dojo-attach-point="vertexCount"></div> 
-  <button id="miboton" value="false">crear Lineas</button><br>
 
-  <label id="puntoInteresBuscar" value="interes">interes</label>
-  <select id="Confirmacion">
-    <option value="true">True</option>
-    <option value="false">False</option>
-  </select>
+  <div class="topTable">
+    <span class="label">Dibujo Manual</span>
+    <div class="buttonTable" style="display: flex; justify-content: space-evenly;">
+      <button id="miboton" value="false">crear Lineas</button><br>
+      <button id="intersectarButton" value="false">ubicacion a intersectar</button>
+    </div>
+  </div>
   <br>
 
-  <button id="bufferButton" value="false">crear buffers</button>
-  <button id="intersectarButton" value="false">ubicacion a intersectar</button>
-
+  <div class="topTable">
+    <span class="label">A buscar</span>
+    <div class="buttonTable">
+      <label id="puntoInteresBuscar" value="interes">interes</label>
+      <select id="Confirmacion">
+        <option value="true">True</option>
+        <option value="false">False</option>
+      </select>  
+    </div>
+  </div>
   <br>
-  <button id="abrir-panel-btn" value="false">Informe</button>
 
+  <div class="topTable">
+    <div class="buttonTable">
+      <button id="bufferButton" value="false">Ejecutar Analisis</button>
+      <button id="abrir-panel-btn" value="false">Informe</button>    
+    </div>
+  </div>
+
+    <br>
   
   <div id="informe-container">
     <p class="informe-text">Información adicional en la esquina</p>
@@ -35,5 +49,20 @@
     </div>
     <button>Acción</button>
   </div>
+
+  <table>
+    <tbody>
+      <tr>
+        <td class="first">
+          <span class="label">Elemento a analizar</span>
+        </td>
+        <td class="first">
+            <select data-dojo-type="jimu/dijit/formSelect" title="Ductos" data-dojo-attach-point="ductSelect"
+            data-dojo-attach-event="change:_onDuctSelectChanged" style="width:70%;">
+          </select>
+        </td>
+      </tr>
+    </tbody>
+  </table>
   
 </div>

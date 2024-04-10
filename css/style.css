@@ -2,6 +2,13 @@
   color: red;
 } */
 
+button{
+  padding: 5px 20px;
+  background-color: #555555;
+  color:white;
+  border: none;
+  
+}
 
 #informe-container {
   position: fixed;
@@ -22,6 +29,17 @@
 .container{
   display: flex;
 }
+
+.topTable{
+  position: relative;
+  margin-bottom: 3px;
+}
+
+.bottomTable{
+  position: absolute;
+  bottom: 0px;
+}
+
 
 /* Estilos para el texto dentro del contenedor */
 .informe-text {

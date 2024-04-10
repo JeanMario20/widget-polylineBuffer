@@ -144,8 +144,12 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
           console.log(polylineCoordenates)
         }
         var featureLayer = mapa.getLayer(mapa.graphicsLayerIds[2]);
+        console.log(mapa.graphicsLayerIds)
+
+
         if(featureLayer){
           var geometries = graphicsUtils.getGeometries(featureLayer.graphics);
+
           for(var i = 0; i < geometries.length; i++){
             paths = geometries[i].paths[0];
             for(var j = 0; j < paths.length; j++){
@@ -196,6 +200,8 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
           //bufferCoords84 = geometries.paths
           var buffer = geometryEngine.geodesicBuffer(allPolylines,50,"meters", true)
         }
+
+        
         
         //var buffer = geometryEngine.geodesicBuffer(geometries,50,"meters", true)
         //var bufferPolyline = geometryEngine.geodesicBuffer(polyline,1,"kilometers", true)
@@ -224,6 +230,7 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
         } 
 
         //-------------------------------------------------------------------------
+
 
         var prueba = null
         if(!esManual){
@@ -433,7 +440,7 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
             return false
           }
 
-          cantidad = cantidad + 1
+          
 
           if(esManual){
             var resultadoPolylineManual = geometryEngine.nearestCoordinate(bufferPolyline, puntos.geometry)
@@ -448,6 +455,7 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
 
           if(distance === 0){
             console.log('un punto se encuentra dentro del buffer')
+            cantidad = cantidad + 1
 
             var punto = [puntos.geometry.x, puntos.geometry.y]
 
@@ -570,11 +578,18 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
 
                         const distanceBetweenPoints = inputNum;
                         //distanceBetweenPoints = 0.1
+
+                        /*for(let o = 0; o < polylineCoordenates.length; o++){
+                          var coords = polylineCoordenates[o]
+                          for(let j = 0;j < coords.length; j++){
+                            console.log(coords[o])
+                          }
+                        }*/
                 
                         // Crea los puntos a lo largo de la polilínea
                         for (let i = 0; i < numPoints + 1; i++) {
                           const distanceFromStart = i * distanceBetweenPoints;
-                          pointCoords = getPointAlongPolyline2(polylineCoordenates, distanceFromStart);
+                          pointCoords = getPointAlongPolyline2(polylinePoint, distanceFromStart);
                           var pointJson = {
                             "x": pointCoords[0], "y": pointCoords[1], "spatialReference": {"wkid": 4326 } 
                           }
