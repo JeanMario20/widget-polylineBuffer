@@ -116,10 +116,11 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
       var esManual = false
       var pathsTo84 = []
       var allPolylines = []
-
       var puntosInteresEncontrados = []
       var coordManual = []
       var cantidad = 0
+
+      var distanciaSegmentacion = 0
       
       
 
@@ -572,6 +573,7 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
                         var inputNum = parseInt(input.value)
 
                         const numPoints = 100;
+                        var kilometraje = 0
                         var segmentacionPoints = []
                         pointCoords = []
                         
@@ -579,47 +581,45 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
                         const distanceBetweenPoints = inputNum;
                         //distanceBetweenPoints = 0.1
 
-                        /*for(let o = 0; o < polylineCoordenates.length; o++){
-                          var coords = polylineCoordenates[o]
-                          for(let j = 0;j < coords.length; j++){
-                            console.log(coords[o])
-                          }
-                        }*/
-                
-                        // Crea los puntos a lo largo de la polilínea
-                        for (let i = 0; i < numPoints + 1; i++) {
-                          const distanceFromStart = i * distanceBetweenPoints;
-                          pointCoords = getPointAlongPolyline2(polylinePoint, distanceFromStart);
-                          var pointJson = {
-                            "x": pointCoords[0], "y": pointCoords[1], "spatialReference": {"wkid": 4326 } 
-                          }
-                          var point = new Point(pointJson)
-                          //polylinePoint.push(pointCoords)
-                          segmentacionPoints.push(pointCoords)
-                          var simpleMarkerSymbol = new SimpleMarkerSymbol()
-                          var pointGraphic = new Graphic(point,simpleMarkerSymbol)
+                        for(let o = 0; o < polylineCoordenates[0].length - 1; o++){
+                          coords = polylineCoordenates[0]
+                          var polylineCoordenatesArray = []
+                          polylineCoordenatesArray.push(coords[o])
+                          polylineCoordenatesArray.push(coords[o + 1])
 
-                          var kilometraje = getDistance(polylineCoordenates[0],[point.x, point.y])
-                          var kilmetrajeToFixed = kilometraje.toFixed(2)
-                          var kilometroTotalFormato = DescomponerKilometro(kilmetrajeToFixed)
-                          console.log(kilometroTotalFormato)
-                          var kilometrajeString = kilometroTotalFormato.toString()
-
-                          var textSymbolSegmentar = new TextSymbol(kilometrajeString).setHorizontalAlignment('right').setVerticalAlignment('buttom')
-                          var textSegmentar = new Graphic(point,textSymbolSegmentar)
-                
-                          //graphicsLayer.add(pointGraphic)
-                          graphicsLayer.add(textSegmentar)
-
-                          var limitarSegmentacion = geometryEngine.intersects(polyline, point);
-                          if(!limitarSegmentacion){
-                            graphicsLayer.remove(pointGraphic)
-                            //Point.remove(point) ?? remover la geometria? 
-                            break;
+                          for (let i = 0; i < numPoints + 1; i++) {
+                            const distanceFromStart = i * distanceBetweenPoints;
+                            pointCoords = getPointAlongPolyline2(polylineCoordenatesArray, distanceFromStart);
+                            var pointJson = {
+                              "x": pointCoords[0], "y": pointCoords[1], "spatialReference": {"wkid": 4326 } 
+                            }
+                            var point = new Point(pointJson)
+                            //polylinePoint.push(pointCoords)
+                            segmentacionPoints.push(pointCoords)
+                            var simpleMarkerSymbol = new SimpleMarkerSymbol()
+                            var pointGraphic = new Graphic(point,simpleMarkerSymbol)
+                            var limitarSegmentacion = geometryEngine.intersects(polyline, point);
+                            if(!limitarSegmentacion){
+                              graphicsLayer.remove(pointGraphic)
+                              //Point.remove(point) ?? remover la geometria? 
+                              break;
+                            }
+  
+                            kilometraje = kilometraje = getDistance(polylineCoordenatesArray[0],[point.x, point.y])
+                            var kilmetrajeToFixed = kilometraje.toFixed(2)
+                            var kilometroTotalFormato = DescomponerKilometro(kilmetrajeToFixed)
+                            console.log(kilometroTotalFormato)
+                            var kilometrajeString = kilometroTotalFormato.toString()
+  
+                            var textSymbolSegmentar = new TextSymbol(kilometrajeString).setHorizontalAlignment('right').setVerticalAlignment('buttom')
+                            var textSegmentar = new Graphic(point,textSymbolSegmentar)
+                  
+                            //graphicsLayer.add(pointGraphic)
+                            graphicsLayer.add(textSegmentar)
+  
+                            
                           }
                         }
-                
-                        //segmentacion(polylinePoint,inputNum)
                         console.log(input.value);
                     };
                 }
@@ -780,6 +780,7 @@ function(declare, lang, on, aspect, Deferred, domClass, portalUrlUtils, portalUt
         return distance; // Distancia en kilómetros
       }
 
+      
       function getPointAlongPolyline2(vertices, distance) {
         // Recorre los vértices para encontrar el segmento adecuado
         let accumulatedDistance = 0;
